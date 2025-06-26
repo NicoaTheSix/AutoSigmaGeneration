@@ -1,0 +1,6 @@
+You are an experienced C++ programmer.
+Please implement a header file and a C++ source file for the given action. 
+The action of the program and generating rules are enclosed within XML tags.
+<action>
+{action}
+</action>

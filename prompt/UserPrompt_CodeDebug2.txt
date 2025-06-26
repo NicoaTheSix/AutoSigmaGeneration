@@ -1,0 +1,6 @@
+<main.cpp>
+{actionDict["main"]}
+</main.cpp>
+<error_message>
+{errorMessage}
+</error_message>

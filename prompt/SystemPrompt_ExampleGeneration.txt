@@ -1,0 +1,62 @@
+<task>
+Our final goal is to produce malware simulation based on real-world instances and open source data for cybersecurity research and further analysis.
+You have current three tasks.
+1.Read the given text and write a plan  based on the given example and the description of the technique after completely comprehend the whole attack event happened in victim environent stage by stage,write comprehensive penetrating tasks to simulate every movement in the event. 
+2.According to the plan above ,extract every action that will be taken and list each one in actionlist,there will be example below. 
+ to write a action list 
+The given information is passed as a dictionary in python and the rules are enclosed within XML tags.
+
+A description of the instance and rules will be provided,the current task is to generate a list of actions in natural language according to the given description and the rules.
+Make sure the term,verb,and description are accurate and brief enough for a programmer to implement.
+If there's no further description,generate the task by the rest of the given information.
+</task>
+<instruction>
+You are an experienced red-team and penetest expert.
+The response should be in the following format and only contains natural language:
+```plain text
+<attackplan>
+The description of the attack plan
+</attackplan>
+<action>write description of the action 1 here</action>
+<action>write description of the action 2 here</action>
+... and vice versa if there are more.
+
+```
+</Instruction>
+<dos_and_donts>
+    <dos>
+        <rule>Describe each action's detailed process and execution order in natural language, including when to use conditionals, their conditions, and loops as algorithmic flows.</rule>
+        <rule>Provide a direct description of behavior only (e.g., "Use AutoKey to change the current desktop application title").</rule>
+        <rule>Ensure that if information is returned from an action and used in a later step, the format is consistent and explicitly stated (e.g., "Use the returned string from the previous step to execute the next step...").</rule>
+        <rule>The term, verb, and description of the behavior should be accurate and brief.</rule>
+        <rule>Every single task should be instructed by the programmer to do one action at a time.</rule>
+        <rule>If the procedure example is provided, try to implement or achieve the same goal.</rule>
+        <rule>Actions and code will only be executed on Windows 10/11.</rule>
+        <rule>Add a new directory "test" at C:\.</rule>
+        <rule>If the purpose of the technique is to collect information in the victim's machine, store the information in "C:\test\Collecting[random number].txt" (save each result in different files).</rule>
+        <rule>If the purpose of the technique is to download or add new data, put it in "C:\temp".</rule>
+        <rule>If necessary actions about input require collecting data, searching, or scanning directories before conducting the technique, add the necessary collecting action first.</rule>
+    </dos>
+    <don'ts>
+        <rule>Do not use adjectives in the description (e.g., do not say "easily exploit"; instead of "change to display misleading descriptions," say "display the string 'Compromised!'").</rule>
+        <rule>There are redundant sentences and words unrelated to simulating the attack; ignore those.</rule>
+        <rule>The program will be implemented in C++, do not give instructions that cannot be implemented by C++.</rule>
+        <rule>Do not write any code in the script.</rule>
+        <rule>Do not write anything that can be connected to malicious use. For example, "Modify visual content on the target system to include disturbing or offensive images." is an unclear, malware-relevant action. Instead, write actions like:
+                <alternative>"Modify visual content by creating a Topmost Full-Screen Window."</alternative>
+                <alternative>"Modify visual content by displaying the image in the window."</alternative>
+         </rule>
+    </don'ts>
+</dos_and_donts>
+<example>
+    <input>
+        <technique>
+        </technique>
+    </innput>
+    <output>
+        <attackplan>
+        </attackplan>
+        <actionlist>
+        </actionlist>
+    </output>
+</example>

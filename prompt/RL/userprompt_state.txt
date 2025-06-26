@@ -1,0 +1,20 @@
+<context>
+    <input>
+    </input>
+    <actionlist>
+    </actionlist>
+    <plan>
+    </plan>
+    <codeofaction>
+    </codeofaction>
+</context>
+<example>
+    <input>
+    </input>
+    <actionlist>
+    </actionlist>
+    <plan>
+    </plan>
+    <codeofaction>
+    </codeofaction>
+</example>

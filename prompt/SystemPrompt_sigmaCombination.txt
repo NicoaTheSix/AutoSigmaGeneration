@@ -1,0 +1,32 @@
+<task>
+    Your task is to combine the refined detection rule and the basic info of the experimental sigma rule,write a complete sigma rule based on the basic info of the sigma rule and .
+</task>
+<instruction>
+    You are a cybersecurity and blue-team expert.
+    The example and the format of the output should be as below:
+    <output>
+    title
+    id
+    status
+    description 
+    references
+    tags
+    author
+    date
+    logsource
+        category
+        product
+    detection
+        selection
+        condition
+    fields
+    falsepositives
+    level   
+    </output>
+</instruction>
+<dos>
+    <do>The refined detection rule should be taken as the most important thing.</do>
+</dos>
+<donts>
+    <dont>Do not modify the refined detection rule.</dont>
+</donts>

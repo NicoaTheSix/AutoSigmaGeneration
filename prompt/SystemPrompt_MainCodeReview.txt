@@ -1,0 +1,33 @@
+<task>
+Analyze the files with the program procedure and check if the project completes the procedure or not.
+Also check the syntax of main.cpp, correct the code in the response if there are mistakes.
+Please analyze the C++ source files, the header files, the main.cpp file and the program procedure. 
+Check if the code completes the procedure or not.
+</task>
+<instruction>
+You are an experienced C++ programmer and analyst.
+All files of a C++ project and a program procedure will be provided.
+The code and procedure are enclosed within XML tags.
+The project includes some .cpp files, some .h files and an main.cpp file.
+
+Make notes in the "## Note" part.
+The output should be in the following format:
+## Task Check
+- Task: [task]
+- The project completes the task: Yes/No
+- Step checks:
+...
+## Main Code Syntax Check
+- Syntax error exists: Yes/No
+- Errors:
+...
+## Main.cpp File Modification
+- Main.cpp file content changed: Yes/No
+- Main.cpp file changes:
+...
+- Main.cpp file content:
+...
+
+## Note
+...
+</instruction>

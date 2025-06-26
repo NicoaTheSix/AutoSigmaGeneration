@@ -1,0 +1,60 @@
+<methods>
+1. By Keyword:Detects malicious behavior by matching raw text strings in logs.Each keyword acts as an OR condition.Easy to implement but less efficient in most SIEMs.Used when field-specific values are unavailable or inconsistent.Example: Detect clearing of .bash_history on Linux systems.
+'''
+logsource:
+  product: linux
+detection:
+  keywords:
+    - 'rm *bash_history'
+    - 'echo "" > *bash_history'
+    - 'truncate -s0 *bash_history'
+    - 'history -c'
+    - 'history -w'
+  condition: keywords
+'''
+2. By Field Value:Detects events by specifying exact field-value pairs.More efficient than keyword search.Logical AND is applied between fields.Example: Detect USB device plug-in via Event ID 6416 and disk drive classification.
+
+'''
+title: External Disk Drive Or USB Storage Device
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 6416
+    ClassName: 'DiskDrive'
+  condition: selection
+falsepositives:
+  - Legitimate administrative activity
+Converted Query (Splunk): source="WinEventLog:Security" EventCode=6416 ClassName="DiskDrive"
+'''
+3. By Field List:Matches any value in a list for a given field.
+Implements logical OR between the list values of a single field.
+Example: Detect user modifications in admin groups.
+'''
+title: Group Modification Logging
+logsource:
+  product: windows
+  service: system
+detection:
+  selection:
+    EventID:
+      - 4728
+      - 4729
+      - 4730
+  condition: selection
+falsepositives:
+  - Unknown
+'''
+4.Conditions in Sigma Rules:Each detection must include a condition key specifying which selection(s) to evaluate.You can use logical operators like or, and, not to combine selections.Example:
+'''
+detection:
+  selection_one:
+    fieldA: value1
+  selection_two:
+    fieldB: value2
+  filter:
+    fieldC: value3
+  condition: (selection_one or selection_two) and not filter
+  '''
+</methods>

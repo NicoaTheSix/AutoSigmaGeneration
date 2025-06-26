@@ -1,0 +1,127 @@
+<task>Your task is to refine a given basic sigma rule.
+The basic infomation of the sigma rule and the criteria  will be provided,the criteria including the condition of the detection and requirement of the modifiers.Your task includes decide the level of the sigma rule at last.Derive the columns "detection","falsepositives","level".
+</task>
+<instruction>
+You are a cybersecurity professional with expertise in blue team.
+The example and the format of the output should be as below:
+    <output>
+        logsource:                      # important for the field mapping in predefined or your additional config files
+            category: process_creation  # In this example we choose the category 'process_creation'
+            product: windows            # the respective product
+        detection:
+            selection:
+                FieldName: 'StringValue'
+                FieldName: IntegerValue
+                FieldName|modifier: 'Value'
+            condition: selection
+        falsepositives:
+            - describe possible false positive conditions to help the analysts in their investigation
+        level: one of five levels (informational, low, medium, high, critical)
+    </output>
+    <logsource>Use existing log source if available;Use product, service, category</logsource>
+    <detection>
+      <conditions>
+        <condition type="By Keyword">Detects malicious behavior by matching raw text strings in logs.Each keyword acts as an OR condition.Easy to implement but less efficient in most SIEMs.Used when field-specific values are unavailable or inconsistent.Example: Detect clearing of .bash_history on Linux systems.If the schema of the audit log is unknown ,only detect by keywords.
+            '''
+            logsource:
+              product: linux
+            detection:
+              keywords:
+                - 'rm *bash_history'
+                - 'echo "" > *bash_history'
+                - 'truncate -s0 *bash_history'  
+                - 'history -c'
+                - 'history -w'
+              condition: keywords
+            '''
+        </condition>
+        <condition type="By Field Value">Detects events by specifying exact field-value pairs.More efficient than keyword search.Logical AND is applied between fields.Example: Detect USB device plug-in via Event ID 6416 and disk drive classification.
+
+            '''
+            title: External Disk Drive Or USB Storage Device
+            logsource:
+              product: windows
+              service: security
+            detection:
+              selection:
+                            EventID: 6416
+                ClassName: 'DiskDrive'
+              condition: selection
+            falsepositives:
+              - Legitimate administrative activity
+            '''
+        </condition>
+        <condition type="By Field List">Matches any value in a list for a given field.Implements logical OR between the list values of a single field.Example: Detect user modifications in admin groups.
+            '''
+            title: Group Modification Logging
+            logsource:
+              product: windows
+              service: system
+            detection:
+              selection:
+                EventID:
+                  - 4728
+                  - 4729
+                  - 4730
+              condition: selection
+            falsepositives:
+              - Unknown
+            '''
+        </condition>
+        <condition type="Conditions in Sigma Rules">Each detection must include a condition key specifying which selection(s) to evaluate.You can use logical operators like or, and, not to combine selections.Example:
+            '''
+            detection:
+              selection_one:
+                fieldA: value1
+              selection_two:
+                fieldB: value2
+              filter:
+                fieldC: value3
+              condition: (selection_one or selection_two) and not filter
+              '''
+        </condition>
+        </conditions>
+        <rule>Single element: no list</rule>
+        <rule>Use lowercase identifiers</rule>
+        <rule>No SIEM-specific logic</rule>
+        <instruction>Sigma modifiers are appended to field names using a pipe (|) to alter the matching behavior in detection rules.​
+        </instruction>
+        <Modifiers>
+          List of Modifiers:
+            1.all: Ensures all specified values match (logical AND).Example: field|contains|all: ['val1', 'val2']​
+            2.base64 / base64offset: Encodes values in Base64; base64offset accounts for encoding offsets.Example: field|base64offset|contains: 'value'​
+            3.cased: Enforces case-sensitive matching.Example: field|cased: 'Value'​
+            4.cidr: Matches IP addresses within a CIDR range.Example: ip|cidr: '192.168.0.0/24'​
+            5.contains: Matches if the field contains the specified substring.Example: field|contains: 'sub'​
+            6.endswith: Matches if the field ends with the specified value.Example: field|endswith: '.exe'​
+            7.exists: Checks if a field exists or not.Example: field|exists: true​
+            8.expand: Replaces placeholders with actual values in pipelines.Example: field|expand: '%username%'​
+            9.fieldref: Compares the value of one field to another.Example: field1|fieldref: field2​
+            10.gt / gte / lt / lte: Performs numerical comparisons: greater than, greater than or equal, less than, less than or equal.Example: field|gt: 100​ 
+            11.re: Applies regular expression matching.Example: field|re: '^admin.*'​
+            12.startswith: Matches if the field starts with the specified value.Example: field|startswith: 'cmd'​
+            13.utf16 / utf16le / utf16be / wide: Encodes values in UTF-16; often used with base64offset.Example: field|utf16|base64offset|contains: 'value'​
+            14.windash: Normalizes different dash variants in command-line arguments.Example: field|windash|contains: '-param'​
+          </Modifiers>
+          <example>
+            Sigma Rule of example with mixture modifier:
+            ```
+              detection:
+                selection:
+                  CommandLine|wide|base64offset|contains: 'ping'
+              condition: selection
+            ```
+            This rule detects Base64-encoded UTF-16 representations of the string 'ping' in the CommandLine field, which is useful for identifying obfuscated command executions.​
+            </example>
+    </detection>
+
+  </explanation>
+</instruction>
+
+    <falsePositive><example>Legitimate processes that delete the shadow copies</example></falsePositive>
+    <level>
+      <rule>Critical: must not trigger false positives</rule>
+      <rule>High: must be manually reviewed</rule>
+      <rule>Low/Medium: for suspicious or policy violation</rule>
+      <rule>Informational: for compliance/correlation</rule>
+    </level>

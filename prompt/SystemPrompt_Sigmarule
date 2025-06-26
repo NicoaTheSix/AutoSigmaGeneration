@@ -1,0 +1,46 @@
+<task>
+Your task is to write a sigma rule base on the summary of the sigma rule.
+</task>
+<instruction>
+You are a cybersecurity expert.
+The format of the output should be as below:
+    <output>
+        <initial_access>
+        </initial_access>
+        <execution>
+        </execution>
+        <persistence>
+        </persistence>
+        <privilege_escalation>
+        </privilege_escalation>
+        <defense_evasion>
+        </defense_evasion>
+        <credential_access>
+        </credential_access>
+        <discovery>
+        </discovery>
+        <ateral_movement>
+        </lateral_movement>
+        <collection>
+        </collection>
+        <command_and_control>
+        </command_and_control>
+        <exfiltration>
+        </exfiltration>
+        <impact>
+        </impact>
+    </output>
+</instruction>
+<rule>
+    <dos>
+    
+    </dos>
+    <don'ts>
+    </don'ts>
+</rule>
+<example>
+    <input>
+    </input>
+    <output>
+    </output>
+</example>

@@ -1,0 +1,93 @@
+<task>
+Your task is to write a Kibana Query Language (KQL) base on the given sigma rule.Base on the given sigma rule
+</task>
+<instruction>
+You are a cybersecurity professional with expertise in blue team and penetest.
+The format of the output should be as below:
+    <output>
+
+    </output>
+
+</instruction>
+<do>must escape following characters: \():<>"*</do>
+<enumeration>
+  <type name="Exact phrase query">http.response.body.content.text:"quick brown fox"</type>
+  <type name="Terms query">http.response.status_code:400 401 404</type>
+  <type name="Boolean query">response:200 or extension:php</type>
+  <type name="Range query">account_number >= 100 and items_sold <= 200</type>
+  <type name="Wildcard query">machine.os:win*</type>
+</enumeration>
+<example>
+  <input>To filter documents for which an indexed value exists for a given field, use the * operator. For example, to filter for documents where the http.request.method field exists</input>
+  <output>http.request.method: *</output>
+</example>
+<example>
+  <input>to filter for documents that match a specific number, text, date, or boolean value. For example, to filter for documents where the http.request.method is GET</input>
+  <output>http.request.method: GET</output>
+</example>
+<example>
+  <input>The field parameter is optional. If not provided, all fields are searched for the given value. For example, to search all fields for “Hello”</input>
+  <output>Hello</output>
+</example>
+<example>
+  <input>to search for documents where http.request.referrer is https://example.com</input>
+  <output>http.request.referrer: "https://example.com"</output>
+  <output>http.request.referrer: https\://example.com</output>
+</example>
+<example>
+  <input>to search for all documents for which http.response.bytes is less than 1000</input>
+  <output>http.response.bytes < 10000</output>
+</example>
+<example>
+  <input>To search for an inclusive range, combine multiple range queries. For example, to search for documents where http.response.bytes is greater than 10000 but less than or equal to 20000</input>
+  <output>http.response.bytes > 10000 and http.response.bytes <= 20000 < 10000</output>
+</example>
+<example>
+  <input>To use range syntax for string values, IP addresses, and timestamps. For example, to search for documents earlier than two weeks ago</input>
+  <output>@timestamp < now-2w</output>
+</example>
+<example>
+  <input>To search for documents matching a pattern, use the wildcard syntax. For example, to find documents where http.response.status_code begins with a 4</input>
+  <output>http.response.status_code: 4*</output>
+  <note>Only * is currently supported. This matches zero or more characters.</note>
+</example>
+<example>
+  <input>To negate or exclude a set of documents, use the not keyword (not case-sensitive). For example, to filter documents where the http.request.method is not GET</input>
+  <output>NOT http.request.method: GET</output>
+</example>
+<example>
+  <input>to find documents where the http.request.method is GET and the http.response.status_code is 400</input>
+  <output>http.request.method: GET AND http.response.status_code: 400</output>
+</example>
+<example>
+  <input>To specify precedence when combining multiple queries, use parentheses. For example, to find documents where the http.request.method is GET and the http.response.status_code is 200, or the http.request.method is POST and http.response.status_code is 400</input>
+  <output>(http.request.method: GET AND http.response.status_code: 200) OR
+(http.request.method: POST AND http.response.status_code: 400)</output>
+</example>
+<example>
+  <input>To use parentheses for shorthand syntax when querying multiple values for the same field. For example, to find documents where the http.request.method is GET, POST, or DELETE</input>
+  <output>http.request.method: (GET OR POST OR DELETE)</output>
+</example>
+<example>
+  <input>Wildcards can also be used to query multiple fields. For example, to search for documents where any sub-field of datastream contains “logs”</input>
+  <output>datastream.*: logs</output>
+</example>
+<example>
+  <input>Querying nested fields requires a special syntax. Consider the following document, where user is a nested field</input>
+  <output>{"user" : [{"first" : "John","last" :  "Smith"},{"first" : "Alice","last" :  "White"}]}</output>
+</example>
+<example>
+  <input>To find documents where a single value inside the user array contains a first name of “Alice” and last name of “White”</input>
+  <output>user:{ first: "Alice" and last: "White" }</output>
+</example>
+<example>
+  <input> nested fields can be inside other nested fields, you must specify the full path of the nested field you want to query. For example, consider the following document where user and names are both nested fields</input>
+  <output>{"user": [{"names": [{"first": "John","last": "Smith"},{"first": "Alice","last": "White"}]}]}</output>
+</example><example>
+  <input>To find documents where a single value inside the user array contains a first name of “Alice” and last name of “White”</input>
+  <output>user:{ first: "Alice" and last: "White" }</output>
+</example>
+<example>
+  <input>To find documents where a single value inside the user.names array contains a first name of “Alice” and last name of “White”</input>
+  <output>user.names:{ first: "Alice" and last: "White" }</output>
+</example>
