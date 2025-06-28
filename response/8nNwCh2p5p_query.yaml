@@ -1,0 +1,18 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "wildcard": {
+            "process.command_line": "*cscript.exe*"
+          }
+        },
+        {
+          "wildcard": {
+            "process.command_line": "*sllauncherENU.dll*"
+          }
+        }
+      ]
+    }
+  }
+}

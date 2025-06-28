@@ -166,13 +166,6 @@ def loadSettings(bool_display:bool=False):
     except:
         raise ProjectEnvironmentSettingError()
     return
-def settingPath(filename:str):
-    global workflow_folder_path
-    global code_output_path
-    global code_review_output_path
-    global code_debug_output_path
-    global code_json_file_path
-    return
 #for testing
 if __name__ == "__main__":
     

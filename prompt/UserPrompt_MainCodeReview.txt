@@ -1,8 +1,0 @@
-
-{codeStr}
-<main.cpp>
-{mainCode}
-</main.cpp>
-<procedure>
-{procedureStr}
-</procedure>

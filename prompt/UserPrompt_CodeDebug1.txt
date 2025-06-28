@@ -1,3 +1,0 @@
-<{filename}.cpp>
-{code}
-</{filename}.cpp>

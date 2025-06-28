@@ -1,0 +1,18 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "process.command_line": "cscript.exe"
+          }
+        },
+        {
+          "match": {
+            "process.command_line": "sllauncherENU.dll (copy).lnk"
+          }
+        }
+      ]
+    }
+  }
+}
