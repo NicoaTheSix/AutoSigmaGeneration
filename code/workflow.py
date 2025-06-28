@@ -199,21 +199,7 @@ def elsticSearch_search(query,index:str="sagac1"):
 
 if __name__ =='__main__':
 
-    "	T1016	System Network Configuration Discovery	Uses IPCONFIG.EXE to discover IP address",
-    "	T1053	Scheduled Task	Uses Task Scheduler to run other applications (Officeupdate.exe)"
-    "	T1064	Scripting	Executes scripts (34fDFkfSD38.js)"
-    "	T1106	Execution through API	Application (AcroRd32.exe) launched itself"
-    "	T1059	Command-Line Interface	Starts CMD.EXE for commands (WinRAR.exe, wscript.exe) execution"
-    "	T1016	System Network Configuration Discovery	Uses IPCONFIG.EXE to discover IP address"
-    "	T1140	Deobfuscate/Decode Files or Information	certutil to decode Base64 binaries, expand.exe to decompress a CAB file"
-    #label and description from saga c1
-    #"detection condition":"keywords"
-    dict_input={"higasa":"	T1016	System Network Configuration Discovery	Uses IPCONFIG.EXE to discover IP address"}
-    #query=workflow_sigmaRule(dict_input=dict_input)
-    #print(elsticSearch_search(query))
-    #dict_input={"higasa":"T1204.002	User Execution	WINWORD.EXE triggered rFupMb75.exe (CreateFile)"}
-    #query=workflow_sigmaRule(dict_input=dict_input)
-    #print(elsticSearch_search(query))
+
     descriptionFromSaga=[
     "T1547.001	Boot or Logon Autostart Execution - Registry Run Keys/Startup Folder	Creates startup shortcut (sllauncherENU.dll (copy).lnk) via cscript.exe execution",
     "T1547.001	Boot or Logon Autostart Execution - Registry Run Keys/Startup Folder	Creates startup shortcut (sllauncherENU.dll (copy).lnk) via cscript.exe execution",
