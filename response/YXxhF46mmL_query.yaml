@@ -1,0 +1,16 @@
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "logsource.category": "process_creation"
+        }
+      },
+      "filter": {
+        "wildcard": {
+          "process.command_line": "*.lnk*"
+        }
+      }
+    }
+  }
+}

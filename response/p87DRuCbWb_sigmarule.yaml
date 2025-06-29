@@ -1,0 +1,26 @@
+
+    title: SCHEDULED TASK EXECUTION DETECTION
+    id: 3f8c1c3e-1c4e-4b5e-8c3e-1c4e4b5e8c3
+    status: experimental
+    description: Detects execution of scheduled tasks that may indicate malicious activity, specifically monitoring the use of the Task Scheduler DLL interface.
+    references:
+        - https://attack.mitre.org/techniques/T1053/
+    tags:
+        - attack.execution
+        - attack.t1053
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            CommandLine|contains: 'Officeupdate.exe'
+        condition: selection
+    fields:
+        - CommandLine
+        - ProcessID
+        - User
+    falsepositives:
+        - Legitimate scheduled tasks for software updates
+    level: medium

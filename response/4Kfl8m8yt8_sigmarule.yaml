@@ -1,0 +1,27 @@
+
+    title: DEOBFUSCATION USING CERTUTIL
+    id: 3f8b1c3e-1c3b-4c5b-8c3e-1c3b4c5b8c3
+    status: experimental
+    description: Detects the use of certutil for decoding Base64 binaries, indicating potential malicious activity.
+    references:
+        - https://attack.mitre.org/techniques/T1140/
+    tags:
+        - attack.execution
+        - attack.t1140
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            CommandLine|contains: 'certutil'
+            CommandLine|contains: 'decode'
+        condition: selection
+    fields:
+        - CommandLine
+        - User
+        - ProcessID
+    falsepositives:
+        - Legitimate use of certutil for file decoding
+    level: high

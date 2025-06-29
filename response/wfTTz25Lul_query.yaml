@@ -1,0 +1,22 @@
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "log.source.category": "process_creation"
+        }
+      },
+      "filter": {
+        "term": {
+          "log.source.product": "windows"
+        }
+      },
+      "should": {
+        "wildcard": {
+          "process.command_line": "*34fDFkfSD38.js*"
+        }
+      },
+      "minimum_should_match": 1
+    }
+  }
+}

@@ -4,12 +4,14 @@
       "must": [
         {
           "wildcard": {
-            "process.command_line": "*cscript.exe*"
+            "FileName": {
+              "value": "*Officeupdate.exe*"
+            }
           }
         },
         {
-          "wildcard": {
-            "process.command_line": "*sllauncherENU.dll*"
+          "term": {
+            "Action": "write"
           }
         }
       ]

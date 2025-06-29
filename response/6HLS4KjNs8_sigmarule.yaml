@@ -1,0 +1,26 @@
+
+    title: SCHEDULED TASK EXECUTION DETECTION
+    id: 3f1b1c3e-1c3b-4c3e-8b3e-1c3b1c3e1b3
+    status: experimental
+    description: Detects the execution of applications via Task Scheduler, specifically targeting Officeupdate.exe.
+    references:
+        - https://attack.mitre.org/techniques/T1053/
+    tags:
+        - attack.execution
+        - attack.t1053
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            CommandLine|contains: 'Officeupdate.exe'
+        condition: selection
+    fields:
+        - CommandLine
+        - User
+        - ProcessID
+    falsepositives:
+        - Legitimate scheduled tasks for software updates
+    level: medium

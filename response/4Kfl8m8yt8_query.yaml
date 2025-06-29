@@ -1,0 +1,24 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "process.command_line": {
+              "query": "certutil",
+              "operator": "AND"
+            }
+          }
+        },
+        {
+          "match": {
+            "process.command_line": {
+              "query": "decode",
+              "operator": "AND"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

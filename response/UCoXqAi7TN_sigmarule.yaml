@@ -1,0 +1,26 @@
+
+    title: SYSTEM NETWORK CONFIGURATION DISCOVERY
+    id: 3f8b1c3e-1c3e-4b8e-8c3e-1c3e4b8e1c3
+    status: experimental
+    description: Detects the use of IPCONFIG.EXE for discovering IP address information on the system.
+    references:
+        - https://attack.mitre.org/techniques/T1016/
+    tags:
+        - attack.discovery
+        - attack.t1016
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            CommandLine|contains: 'ipconfig'
+        condition: selection
+    fields:
+        - CommandLine
+        - User
+        - ProcessID
+    falsepositives:
+        - Legitimate administrative activities using IPCONFIG
+    level: medium

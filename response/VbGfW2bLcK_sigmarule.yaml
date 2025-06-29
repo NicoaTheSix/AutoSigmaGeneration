@@ -1,0 +1,26 @@
+
+    title: SYSTEM INFORMATION DISCOVERY DETECTION
+    id: 3f1b1c3e-1c3b-4c3b-8c3b-1c3b4c3b1c3
+    status: experimental
+    description: Detects attempts to read system information, specifically the machine GUID from the registry.
+    references:
+        - https://attack.mitre.org/techniques/T1082/
+    tags:
+        - attack.discovery
+        - attack.t1082
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: registry
+        product: windows
+    detection:
+        selection:
+            RegistryKey: 'HKEY_LOCAL_MACHINE\\\\SOFTWARE\\\\Microsoft\\\\Cryptography'
+            ValueName: 'MachineGuid'
+        condition: selection
+    fields:
+        - RegistryKey
+        - ValueName
+    falsepositives:
+        - Legitimate administrative tasks accessing system information
+    level: medium

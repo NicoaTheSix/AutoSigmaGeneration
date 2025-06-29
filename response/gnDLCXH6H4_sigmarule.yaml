@@ -1,0 +1,28 @@
+
+    title: EXECUTION THROUGH API BY ACRORD32.EXE
+    id: 3f8b1c3e-1c4e-4c5e-8c3e-1c4e4c5e8c3
+    status: experimental
+    description: Detects self-execution of AcroRd32.exe through API calls, indicating potential malicious behavior.
+    references:
+        - https://attack.mitre.org/techniques/T1106/
+    tags:
+        - attack.execution
+        - attack.t1106
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            ProcessName: 'AcroRd32.exe'
+            CommandLine|contains: 'AcroRd32.exe'
+        condition: selection
+    fields:
+        - ProcessName
+        - CommandLine
+        - User
+        - ParentProcessName
+    falsepositives:
+        - Legitimate use of AcroRd32.exe for document viewing
+    level: high

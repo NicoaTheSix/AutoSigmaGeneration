@@ -198,8 +198,7 @@ def elsticSearch_search(query,index:str="sagac1"):
     return result.stdout
 
 if __name__ =='__main__':
-
-
+    aaaa=["T1059	Command-Line Interface	Starts CMD.EXE for commands (WinRAR.exe, wscript.exe) execution","T1106	Execution through API	Application (AcroRd32.exe) launched itself","T1053	Scheduled Task	Loads the Task Scheduler DLL interface (Officeupdate.exe)","T1064	Scripting	Executes scripts (34fDFkfSD38.js)","T1204	User Execution	Manual execution by user (opening LNK file)","Persistence	T1060	Registry Run Keys / Startup Folder	Writes to a start menu file (Officeupdate.exe)","T1053	Scheduled Task	Uses Task Scheduler to run other applications (Officeupdate.exe)","Privilege Escalation	T1053	Scheduled Task	Uses Task Scheduler to run other applications (Officeupdate.exe)","Defense Evasion	T1064	Scripting	Executes scripts (34fDFkfSD38.js)","T1140	Deobfuscate/Decode Files or Information	certutil to decode Base64 binaries, expand.exe to decompress a CAB file","Discovery	T1012	Query Registry	Reads the machine GUID from the registry","T1082	System Information Discovery	Reads the machine GUID from the registry","T1016	System Network Configuration Discovery	Uses IPCONFIG.EXE to discover IP address"]
     descriptionFromSaga=[
     "T1547.001	Boot or Logon Autostart Execution - Registry Run Keys/Startup Folder	Creates startup shortcut (sllauncherENU.dll (copy).lnk) via cscript.exe execution",
     "T1547.001	Boot or Logon Autostart Execution - Registry Run Keys/Startup Folder	Creates startup shortcut (sllauncherENU.dll (copy).lnk) via cscript.exe execution",
@@ -219,7 +218,7 @@ if __name__ =='__main__':
     "T1204.002	User Execution	cscript.exe executed Retrive4075693065230196915.vbs (Process Create)",
     "T1204.002	User Execution	WINWORD.EXE triggered rFupMb75.exe (CreateFile)",
     "T1204.002	User Execution	cmd.exe launched WINWORD.EXE via DDE (Process Create)"]
-    for i in descriptionFromSaga:
+    for i in aaaa:
         print(i)
         dict_input={"higasa":i}
         query=workflow_sigmaRule(dict_input=dict_input)

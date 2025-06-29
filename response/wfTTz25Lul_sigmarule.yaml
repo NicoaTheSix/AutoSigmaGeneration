@@ -1,0 +1,26 @@
+
+    title: SCRIPT EXECUTION DETECTION
+    id: 3f8b1c3e-1c3e-4b8b-8c3e-1c3e4b8b1c3
+    status: experimental
+    description: Detects the execution of scripts which may indicate potential malicious activity.
+    references:
+        - https://attack.mitre.org/techniques/T1064/
+    tags:
+        - attack.execution
+        - attack.t1064
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            CommandLine|contains: '34fDFkfSD38.js'
+        condition: selection
+    fields:
+        - CommandLine
+        - ProcessID
+        - User
+    falsepositives:
+        - Legitimate script executions by authorized users
+    level: medium

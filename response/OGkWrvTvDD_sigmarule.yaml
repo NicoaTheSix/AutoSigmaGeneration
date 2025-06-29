@@ -1,0 +1,28 @@
+
+    title: SUSPICIOUS PERSISTENCE VIA OFFICEUPDATE.EXE
+    id: 3f1b1c3e-1c3e-4b1b-8c3e-1c3e4b1b8c3
+    status: experimental
+    description: Detects suspicious persistence mechanism by monitoring writes to startup files related to Officeupdate.exe.
+    references:
+        - https://attack.mitre.org/techniques/T1060/
+    tags:
+        - attack.persistence
+        - attack.t1060
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: file_creation
+        product: windows
+    detection:
+        selection:
+            FileName|contains: 'Officeupdate.exe'
+            Action: 'write'
+        condition: selection
+    fields:
+        - FileName
+        - Action
+        - User
+        - Timestamp
+    falsepositives:
+        - Legitimate software updates or installations
+    level: high

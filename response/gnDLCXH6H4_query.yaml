@@ -4,12 +4,12 @@
       "must": [
         {
           "match": {
-            "process.command_line": "cscript.exe"
+            "ProcessName": "AcroRd32.exe"
           }
         },
         {
-          "match": {
-            "process.command_line": "sllauncherENU.dll (copy).lnk"
+          "wildcard": {
+            "CommandLine": "*AcroRd32.exe*"
           }
         }
       ]

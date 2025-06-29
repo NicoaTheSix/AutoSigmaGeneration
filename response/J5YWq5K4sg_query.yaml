@@ -1,0 +1,35 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "wildcard": {
+            "CommandLine": {
+              "value": "*CMD.EXE*"
+            }
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              {
+                "wildcard": {
+                  "CommandLine": {
+                    "value": "*WinRAR.exe*"
+                  }
+                }
+              },
+              {
+                "wildcard": {
+                  "CommandLine": {
+                    "value": "*wscript.exe*"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

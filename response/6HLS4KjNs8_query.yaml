@@ -1,0 +1,16 @@
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match": {
+          "process.command_line": "Officeupdate.exe"
+        }
+      },
+      "filter": {
+        "term": {
+          "logsource.category": "process_creation"
+        }
+      }
+    }
+  }
+}

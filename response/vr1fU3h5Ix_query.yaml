@@ -1,0 +1,23 @@
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "Action": "Query"
+          }
+        },
+        {
+          "match": {
+            "Key": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography"
+          }
+        },
+        {
+          "match": {
+            "Value": "MachineGuid"
+          }
+        }
+      ]
+    }
+  }
+}

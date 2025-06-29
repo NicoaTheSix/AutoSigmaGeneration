@@ -1,0 +1,28 @@
+
+    title: COMMAND LINE INTERFACE EXECUTION DETECTION
+    id: 3f3c1c1e-1c5e-4b5e-8c1e-1c5e4b5e8c1e
+    status: experimental
+    description: Detects execution of commands via CMD.EXE using various executables like WinRAR.exe and wscript.exe.
+    references:
+        - https://attack.mitre.org/techniques/T1059/
+    tags:
+        - attack.execution
+        - attack.t1059
+    author: ChatGPT4o
+    date: 2025-04-25
+    logsource:
+        category: process_creation
+        product: windows
+    detection:
+        selection:
+            CommandLine|contains: 'CMD.EXE'
+            CommandLine|contains: 'WinRAR.exe'
+            CommandLine|contains: 'wscript.exe'
+        condition: selection
+    fields:
+        - CommandLine
+        - ProcessID
+        - User
+    falsepositives:
+        - Legitimate administrative use of CMD.EXE for automation tasks
+    level: medium
