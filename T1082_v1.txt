@@ -1,0 +1,105 @@
+You are a senior cybersecurity detection engineer with expertise in threat detection, MITRE ATT&CK TTPs, and writing Sigma rules. Your task is to write Sigma detection rules based on the following inputs, which include attack descriptions, procedures, and detection patterns.
+
+You will follow a multi-step process where you will be given TTP context, attack procedures, current detection methods, and our proprietary event log format. Your final task will be to write a Sigma rule tailored to our log format.
+
+---------------------------------------------------------------------------
+
+The MITRE ATT&CK technique we want to detect is:
+
+TTP Name: System Information Discovery  
+TTP ID: T1082  
+Description:  
+An adversary may attempt to get detailed information about the operating system and hardware, including version, patches, hotfixes, service packs, and architecture. Adversaries may use the information from System Information Discovery during automated discovery to shape follow-on behaviors, including whether or not the adversary fully infects the target and/or attempts specific actions.
+
+Tools such as Systeminfo can be used to gather detailed system information. If running with privileged access, a breakdown of system data can be gathered through the systemsetup configuration tool on macOS. As an example, adversaries with user-level access can execute the df -aH command to obtain currently mounted disks and associated freely available space. Adversaries may also leverage a Network Device CLI on network devices to gather detailed system information (e.g. show version).[1] On ESXi servers, threat actors may gather system information from various esxcli utilities, such as system hostname get, system version get, and storage filesystem list (to list storage volumes).[2][3]
+
+Infrastructure as a Service (IaaS) cloud providers such as AWS, GCP, and Azure allow access to instance and virtual machine information via APIs. Successful authenticated API calls can return data such as the operating system platform and status of a particular instance or the model view of a virtual machine.[4][5][6]
+
+System Information Discovery combined with information gathered from other forms of discovery and reconnaissance can drive payload development and concealment.[7][8]
+
+Please analyze this TTP and summarize the key suspicious behaviors or indicators typically associated with this technique.
+
+---------------------------------------------------------------------------
+
+Procedure examples known to trigger this TTP:
+
+- admin@338 actors used the following commands after exploiting a machine with LOWBALL malware to obtain information about the OS: ver >> %temp%\download systeminfo >> %temp%\download  
+- Agent Tesla can collect the system's computer name and also has the capability to collect information on the processor, memory, OS, and video card from the system.  
+- Akira uses the GetSystemInfo Windows function to determine the number of processors on a victim machine.  
+- APT41 uses multiple built-in commands such as systeminfo and net config Workstation to enumerate victim system basic configuration information.
+
+Identify the behavioral patterns from these examples.
+
+---------------------------------------------------------------------------
+
+Likely attack patterns for T1082 may include:
+
+1. **Process Create|Start** of built-in discovery binaries:  
+   `systeminfo.exe`, `hostname.exe`, `whoami.exe`, `wmic.exe`, `reg.exe` (query to CurrentVersion, ProductId, InstallDate), `ver.exe`.
+2. **PowerShell** command lines with WMI/CIM queries:  
+   `Get-WmiObject Win32_OperatingSystem`, `Get-CimInstance -ClassName Win32_ComputerSystem`.
+3. API usage (optional, if logged): `GetSystemInfo`, `GetVersionExA`, `NetWkstaGetInfo`.
+
+---------------------------------------------------------------------------
+
+Current detection techniques commonly used:
+
+- `Monitor executed commands and arguments that may attempt to get detailed information about the operating system and hardware, including version, patches, hotfixes, service packs, and architecture. For network devices, monitor executed commands in AAA logs, especially those run by unexpected or unauthorized users. On ESXi servers, monitor discovery commands in the /var/log/shell.log history file.`  
+- `Monitor for API calls that may attempt to get detailed information about the operating system and hardware, including version, patches, hotfixes, service packs, and architecture. Remote access tools with built-in features may interact directly with the Windows API to gather information. Information may also be acquired through Windows system management tools such as Windows Management Instrumentation and PowerShell. In cloud-based systems, native logging can be used to identify access to certain APIs and dashboards that may contain system information. Depending on how the environment is used, that data alone may not be useful due to benign use during normal operations.`  
+- `Monitor newly executed processes that may attempt to get detailed information about the operating system and hardware, including version, patches, hotfixes, service packs, and architecture.`  
+
+Explain how these map to suspicious behaviors.
+
+---------------------------------------------------------------------------
+
+Our detection events follow this schema:
+
+Each event contains:
+- srcNode: { UUID, Name, Image, Cmdline, Type, Pid }
+- dstNode: { UUID, Name|Path|Key, Image, Cmdline, Dstaddress, Port, Type }
+- relation:  
+    • Process: Process Start, Process Create  
+    • File / Registry / Network: see full list in spec  
+- timestamp: UNIX epoch  
+- label: Ground-truth (benign or TTP ID)
+
+Example event:
+{
+  "srcNode": { "Image": "C:\\Windows\\System32\\cmd.exe", "Type": "Process" },
+  "dstNode": { "Image": "C:\\Windows\\System32\\systeminfo.exe", "Type": "Process" },
+  "relation": "Process Create"
+}
+
+---------------------------------------------------------------------------
+
+Now, based on the above information, please generate a complete Sigma rule in valid YAML format.
+
+Special instructions (additions):
+- Detection blocks:
+  1) Process Create|Start of system-discovery executables
+     (systeminfo.exe, hostname.exe, whoami.exe, wmic.exe, reg.exe, ver.exe)
+     • Optional: restrict srcNode.Image endswith cmd.exe|powershell.exe|cscript.exe
+  2) PowerShell / pwsh command line regex:
+     '(Get-(WmiObject|CimInstance)|Win32_(OperatingSystem|ComputerSystem|BIOS)|PSVersionTable)'
+- Fallback: if dstNode.Image (or Name/Path/Key) is empty, compare the other field; match case-insensitive.
+
+---------------------------------------------------------------------------
+
+Your output must include the following fields:
+
+- title or name
+- id: A randomly generated UUID
+- description
+- status: production
+- author: auto-generated
+- date: Use today’s date in YYYY-MM-DD format
+- logsource:
+    category: custom
+    product: windows
+- detection: at least 3 detection branches as above
+- condition: combine detections using **or**
+- tags: attack.T1082, discovery
+- references: Optional
+- level: high / medium / low
+
+Output **only** the YAML rule inside a Markdown code block (```yaml … ```), with no extra commentary.

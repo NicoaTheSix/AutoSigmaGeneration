@@ -1,0 +1,105 @@
+You are a senior cybersecurity detection engineer with expertise in threat detection, MITRE ATT&CK TTPs, and writing Sigma rules. Your task is to write Sigma detection rules based on the following inputs, which include attack descriptions, procedures, and detection patterns.
+
+You will follow a multi-step process where you will be given TTP context, attack procedures, current detection methods, and our proprietary event log format. Your final task will be to write a Sigma rule tailored to our log format.
+
+---------------------------------------------------------------------------
+
+The MITRE ATT&CK technique we want to detect is:
+
+TTP Name: System Network Configuration Discovery  
+TTP ID: T1016  
+Description:  
+Adversaries may look for details about the network configuration and settings, such as IP and/or MAC addresses, of systems they access or through information discovery of remote systems. Several operating system administration utilities exist that can be used to gather this information. Examples include Arp, ipconfig/ifconfig, nbtstat, and route.
+
+Adversaries may also leverage a Network Device CLI on network devices to gather information about configurations and settings, such as IP addresses of configured interfaces and static/dynamic routes (e.g. show ip route, show ip interface).[1][2] On ESXi, adversaries may leverage esxcli to gather network configuration information. For example, the command esxcli network nic list will retrieve the MAC address, while esxcli network ip interface ipv4 get will retrieve the local IPv4 address.[3]
+
+Adversaries may use the information from System Network Configuration Discovery during automated discovery to shape follow-on behaviors, including determining certain access within the target network and what actions to do next.
+
+Please analyze this TTP and summarize the key suspicious behaviors or indicators typically associated with this technique.
+
+---------------------------------------------------------------------------
+
+Procedure examples known to trigger this TTP:
+
+- APT32 used the ipconfig /all command to gather the IP address from the system.  
+- admin@338 actors used the following command after exploiting a machine with LOWBALL malware to acquire information about local networks: ipconfig /all >> %temp%\download  
+- AdFind can extract subnet information from Active Directory.  
+- Agent Tesla can collect the IP address of the victim machine and spawn instances of netsh.exe to enumerate wireless settings.
+
+Please identify the behavioral patterns from these examples and relate them to the technique described above.
+
+---------------------------------------------------------------------------
+
+Likely attack patterns for T1016 may include:
+
+- `Process Create|Start` of built-in discovery binaries:  
+  `ipconfig.exe`, `arp.exe`, `netstat.exe`, `nbtstat.exe`, `route.exe`, `tracert.exe`, `netsh.exe`, `ping.exe`, `wmic.exe`, `whoami.exe /all` with network switches.    
+- Scripts or LOLBins (e.g., `cmd.exe /c ipconfig`) spawned by Office/Browser parent processes during early execution stages.
+
+---------------------------------------------------------------------------
+
+Current detection techniques commonly used:
+
+- `Monitor executed commands and arguments that may look for details about the network configuration and settings, such as IP and/or MAC addresses, of systems they access or through information discovery of remote systems. For network devices, monitor executed commands in AAA logs, especially those run by unexpected or unauthorized users.`  
+- `Monitor for API calls (such as GetAdaptersInfo() and GetIpNetTable()) that may gather details about the network configuration and settings, such as IP and/or MAC addresses.`  
+- `(sourcetype="WinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode="1") OR (sourcetype="WinEventLog:Security" EventCode="4688") AND (Image="C:\Windows\System32\ipconfig.exe" OR Image="C:\Windows\System32\route.exe" OR Image="C:\Windows\System32\nbtstat.exe")`  
+- `Monitor for any attempts to enable scripts running on a system would be considered suspicious. If scripts are not commonly used on a system, but enabled, scripts running out of cycle from patching or other administrator functions are suspicious. Scripts should be captured from the file system when possible to determine their actions and intent.`  
+
+Explain how these map to the suspicious behaviors.
+
+---------------------------------------------------------------------------
+
+Our detection events follow this schema:
+
+Each event contains:
+- srcNode: { UUID, Name, Image, Cmdline, Type, Pid }
+- dstNode: { UUID, Name|Path|Key, Image, Cmdline, Dstaddress, Port, Type }
+- relation:  
+    • File: CreateFile, ReadFile, WriteFile, CloseFile, QueryDirectory, QueryBasicInformationFile, …  
+    • Process: Process Start, Process Create  
+    • Registry: RegOpenKey, RegQueryValue, RegSetValue, …  
+    • Network: TCP Connect, UDP Receive, …  
+- timestamp: UNIX epoch  
+- label: Ground-truth label (benign or TTP ID)
+
+Example event (Process Create):
+{
+  "srcNode": { "Image": "C:\\Windows\\System32\\cmd.exe", "Type": "Process" },
+  "dstNode": { "Image": "C:\\Windows\\System32\\ipconfig.exe", "Type": "Process" },
+  "relation": "Process Create"
+}
+
+---------------------------------------------------------------------------
+
+Now, based on the above information, please generate a complete Sigma rule in valid YAML format.
+
+Special instructions (additions):
+- Include separate detection blocks for:
+  1) **Process Create|Start** of network-discovery executables  
+     (`ipconfig.exe`, `arp.exe`, `netstat.exe`, `nbtstat.exe`, `route.exe`, `tracert.exe`, `netsh.exe`, `ping.exe`, `wmic.exe`)
+
+- When dstNode.Image is null/empty, fall back to dstNode.Name|Path|Key with the same patterns.
+- Support both relation values: **Process Create** and **Process Start** for process events.
+- Directory/path checks are optional; emphasize process/command content over location.
+
+---------------------------------------------------------------------------
+
+Your output must include the following fields:
+
+- title or name
+- id: A randomly generated UUID
+- description
+- status: production
+- author: auto-generated
+- date: Use today’s date in YYYY-MM-DD format
+- logsource:
+    category: custom
+    product: windows
+- detection: ≥3 detection branches covering the patterns above
+- condition: combine relevant detections using **or**
+- tags: Include ATT&CK ID (attack.T1016) and tactic (discovery)
+- references: Optional
+- level: high / medium / low
+
+Output **only** the YAML rule inside a Markdown code block
+using ```yaml … ``` – no extra commentary.

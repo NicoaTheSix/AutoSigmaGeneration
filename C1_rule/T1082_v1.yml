@@ -1,0 +1,53 @@
+title: System Information Discovery via Native Tools and PowerShell
+id: 9beceea2-0b99-476f-bade-062879a9e1fc
+description: Detects execution of Windows built-in system discovery tools and suspicious PowerShell commands indicative of system information discovery activity (ATT&CK T1082).
+status: production
+author: auto-generated
+date: 2025-07-02
+logsource:
+  category: custom
+  product: windows
+detection:
+  selection_sysinfo_binaries:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    dstNode.Image|endswith:
+      - 'systeminfo.exe'
+      - 'hostname.exe'
+      - 'whoami.exe'
+      - 'wmic.exe'
+      - 'reg.exe'
+      - 'ver.exe'
+    srcNode.Image|endswith:
+      - 'cmd.exe'
+      - 'powershell.exe'
+      - 'cscript.exe'
+  selection_sysinfo_fallback:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    dstNode.Name|endswith:
+      - 'systeminfo.exe'
+      - 'hostname.exe'
+      - 'whoami.exe'
+      - 'wmic.exe'
+      - 'reg.exe'
+      - 'ver.exe'
+    srcNode.Image|endswith:
+      - 'cmd.exe'
+      - 'powershell.exe'
+      - 'cscript.exe'
+  selection_pwsh_discovery:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    dstNode.Image|endswith:
+      - 'powershell.exe'
+      - 'pwsh.exe'
+    dstNode.Cmdline|re: '(?i)(Get-(WmiObject|CimInstance)|Win32_(OperatingSystem|ComputerSystem|BIOS)|PSVersionTable)'
+condition: selection_sysinfo_binaries or selection_sysinfo_fallback or selection_pwsh_discovery
+tags:
+  - attack.T1082
+  - discovery
+level: high

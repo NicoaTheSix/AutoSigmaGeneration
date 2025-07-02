@@ -1,0 +1,348 @@
+You are a senior cybersecurity detection engineer with expertise in threat detection, MITRE ATT&CK TTPs, and writing Sigma rules. Your task is to write Sigma detection rules based on the following inputs, which include attack descriptions, procedures, and detection patterns.
+
+You will follow a multi-step process where you will be given TTP context, attack procedures, current detection methods, and our proprietary event log format. Your final task will be to write a Sigma rule tailored to our log format.
+
+---------------------------------------------------------------------------
+
+The MITRE ATT&CK technique we want to detect is:
+
+TTP Name: User Execution: Malicious File  
+TTP ID: T1036.004
+    "Description": "Adversaries may attempt to manipulate the name of a task or service to make it appear legitimate or benign. Tasks/services executed by the Task Scheduler or systemd will typically be given a name and/or description.[1][2]Windows services will have a service name as well as a display name. Many benign tasks and services exist that have commonly associated names. Adversaries may give tasks or services names that are similar or identical to those of legitimate ones.Tasks or services contain other fields, such as a description, that adversaries may attempt to make appear legitimate.[3][4]",
+
+---------------------------------------------------------------------------
+
+Here are procedure examples that are known to trigger this TTP:
+[
+      "During the2022 Ukraine Electric Power Attack,Sandworm Teamleveraged Scheduled Tasks through a Group Policy Object (GPO) to executeCaddyWiperat a predetermined time.[7]",
+      "Agent Teslahas achieved persistence via scheduled tasks.[8]",
+      "Anchorcan create a scheduled task for persistence.[9]",
+      "Apostleachieves persistence by creating a scheduled task, such asMicrosoftCrashHandlerUAC.[10]",
+      "AppleJeushas created a scheduled SYSTEM task that runs when a user logs in.[11]",
+      "APT-C-36has used a macro function to set scheduled tasks, disguised as those used by Google.[12]",
+      "APT29has used named and hijacked scheduled tasks to establish persistence.[13]",
+      "AnAPT3downloader creates persistence by creating the following scheduled task:schtasks /create /tn \"mysc\" /tr C:\\Users\\Public\\test.exe /sc ONLOGON /ru \"System\".[14]",
+      "APT32has used scheduled tasks to persist on victim systems.[15][16][17][18]",
+      "APT33has created a scheduled task to execute a .vbe file multiple times a day.[19]",
+      "APT37has created scheduled tasks to run malicious scripts on a compromised host.[20]",
+      "APT38has used Task Scheduler to run programs at system startup or on a scheduled basis for persistence.[21]Additionally,APT38has used living-off-the-land scripts to execute a malicious script via a scheduled task.[22]",
+      "APT39has created scheduled tasks for persistence.[23][24][25]",
+      "APT41used a compromised account to create a scheduled task on a system.[26][27]",
+      "APT42has used scheduled tasks for persistence.[28]",
+      "AsyncRATcan create a scheduled task to maintain persistence on system start-up.[29]",
+      "Attor's installer plugin can schedule a new task that loads the dispatcher on boot/logon.[30]",
+      "BabySharkhas used scheduled tasks to maintain persistence.[27]",
+      "BackConfighas the ability to use scheduled tasks to repeatedly execute malicious payloads on a compromised host.[31]",
+      "Bad Rabbit’sinfpub.datfile creates a scheduled task to launch a malicious executable.[32]",
+      "BADHATCHcan useschtasks.exeto gain persistence.[33]",
+      "BADNEWScreates a scheduled task to establish by executing a malicious payload every subsequent minute.[34]",
+      "Bazarcan create a scheduled task for persistence.[35][36]",
+      "BITTERhas used scheduled tasks for persistence and execution.[37]",
+      "BlackBytecreated scheduled tasks for payload execution.[38][39]",
+      "BlackByte Ransomwarecreates a schedule task to execute remotely deployed ransomware payloads.[40]",
+      "Blue Mockingbirdhas used Windows Scheduled Tasks to establish persistence on local and remote hosts.[41]",
+      "BONDUPDATERpersists using a scheduled task that executes every minute.[42]",
+      "BRONZE BUTLERhas usedschtasksto register a scheduled task to execute malware during lateral movement.[43]",
+      "Bumblebeecan achieve persistence by copying its DLL to a subdirectory of %APPDATA% and creating a Visual Basic Script that will load the DLL via a scheduled task.[44][45]",
+      "DuringC0017,APT41used the following Windows scheduled tasks for DEADEYE dropper persistence on US state government networks:\\Microsoft\\Windows\\PLA\\Server Manager Performance Monitor,\\Microsoft\\Windows\\Ras\\ManagerMobility,\\Microsoft\\Windows\\WDI\\SrvSetupResults, and\\Microsoft\\Windows\\WDI\\USOShared.[46]",
+      "During theC0032campaign,TEMP.Velesused scheduled task XML triggers.[47]",
+      "Carboncreates several tasks for later execution to continue persistence on the victim’s machine.[48]",
+      "ccf32can run on a daily basis using a scheduled task.[49]",
+      "Chimerahas used scheduled tasks to invoke Cobalt Strike including through batch scriptschtasks /create /ru \"SYSTEM\" /tn \"update\" /tr \"cmd /c c:\\windows\\temp\\update.bat\" /sc once /f /stand to maintain persistence.[50][51]",
+      "CHIMNEYSWEEPcan use the WindowsSilentCleanupscheduled task to enable payload execution.[52]",
+      "Cobalt Grouphas created Windows tasks to establish persistence.[53]",
+      "ComRAThas used a scheduled task to launch its PowerShell loader.[54][55]",
+      "Confuciushas created scheduled tasks to maintain persistence on a compromised host.[56]",
+      "CosmicDukeuses scheduled tasks typically named \"Watchmon Service\" for persistence.[57]",
+      "DuringCostaRicto, the threat actors used scheduled tasks to download backdoor tools.[58]",
+      "One persistence mechanism used byCozyCaris to register itself as a scheduled task.[59]",
+      "Crutchhas the ability to persist using scheduled tasks.[60]",
+      "CSPY Downloadercan use the schtasks utility to bypass UAC.[61]",
+      "Daggerflyhas attempted to use scheduled tasks for persistence in victim environments.[62]",
+      "DanBotcan use a scheduled task for installation.[63]",
+      "DarkWatchmanhas created a scheduled task for persistence.[64]",
+      "Discocan create a scheduled task to run every minute for persistence.[65]",
+      "Dragonflyhas used scheduled tasks to automatically log out of created accounts every 8 hours as well as to execute malicious files.[66]",
+      "Dridexcan maintain persistence via the creation of scheduled tasks within system directories such aswindows\\system32\\,windows\\syswow64,winnt\\system32, andwinnt\\syswow64.[67]",
+      "Adversaries can instructDuquto spread laterally by copying itself to shares it has enumerated and for which it has obtained legitimate credentials (via keylogging or other means). The remote host is then infected by using the compromised credentials to schedule a task on remote machines that executes the malware.[68]",
+      "Dyrehas the ability to achieve persistence by adding a new task in the task scheduler to run every minute.[69]",
+      "Ember Bearuses remotely scheduled tasks to facilitate remote command execution on victim machines.[70]",
+      "Emotethas maintained persistence through a scheduled task, e.g. though a .dll file in the Registry.[71][72]",
+      "Empirehas modules to interact with the Windows task scheduler.[73]",
+      "EvilBunnyhas executed commands via scheduled tasks.[74]",
+      "FIN10has established persistence by using S4U tasks as well as the Scheduled Task option in PowerShell Empire.[75][73]",
+      "FIN13has created scheduled tasks in theC:\\Windowsdirectory of the compromised network.[76]",
+      "FIN6has used scheduled tasks to establish persistence for various malware it uses, including downloaders known as HARDTACK and SHIPBREAD andFrameworkPOS.[77]",
+      "FIN7malware has created scheduled tasks to establish persistence.[78][79][80][81]",
+      "FIN8has used scheduled tasks to maintain RDP backdoors.[82]",
+      "Fox Kittenhas used Scheduled Tasks for persistence and to load and execute a reverse proxy binary.[83][84]",
+      "DuringFrankenstein, the threat actors established persistence through a scheduled task using the command:/Create /F /SC DAILY /ST 09:00 /TN WinUpdate /TR, named \"WinUpdate\"[85]",
+      "GALLIUMestablished persistence forPoisonIvyby created a scheduled task.[86]",
+      "Gamaredon Grouphas created scheduled tasks to launch executables after a designated number of minutes have passed.[87][88][89][90]",
+      "Gazercan establish persistence by creating a scheduled task.[91][92]",
+      "GoldMaxhas used scheduled tasks to maintain persistence.[93]",
+      "Goopyhas the ability to maintain persistence by creating scheduled tasks set to run every hour.[17]",
+      "GravityRATcreates a scheduled task to ensure it is re-executed everyday.[94]",
+      "GRIFFONhas usedsctasksfor persistence.[95]",
+      "GrimAgenthas the ability to set persistence using the Task Scheduler.[96]",
+      "Helminthhas used a scheduled task for persistence.[97]",
+      "HermeticWiperhas the ability to use scheduled tasks for execution.[98]",
+      "HEXANEhas used a scheduled task to establish persistence for a keylogger.[99]",
+      "Higaisadropped and addedofficeupdate.exeto scheduled tasks.[100][101]",
+      "HotCroissanthas attempted to install a scheduled task named \"Java Maintenance64\" on startup to establish persistence.[102]",
+      "IcedIDhas created a scheduled task to establish persistence.[103][104][105]",
+      "IMAPLoadercreates scheduled tasks for persistence based on the operating system version of the victim machine.[106]",
+      "InvisiMolehas used scheduled tasks namedMSSTand\\Microsoft\\Windows\\Autochk\\Scheduledto establish persistence.[107]",
+      "IronNetInjectorhas used a task XML file namedmssch.xmlto run an IronPython script when a user logs in or when specific system events are created.[108]",
+      "ISMInjectorcreates scheduled tasks to establish persistence.[109]",
+      "JHUHUGIThas registered itself as a scheduled task to run each time the current user logs in.[110][111]",
+      "JSS Loaderhas the ability to launch scheduled tasks to establish persistence.[112]",
+      "DuringJuicy Mix,OilRigused VBS droppers to schedule tasks for persistence.[113]",
+      "Kapekapersists via scheduled tasks.[114][115]",
+      "Kimsukyhas downloaded additional malware with scheduled tasks.[116]",
+      "Koadichas used scheduled tasks to add persistence.[117]",
+      "Latrodectuscan create scheduled tasks for persistence.[118][119][120]",
+      "Lazarus Grouphas usedschtasksfor persistence including through the periodic execution of a remote XSL script or a dropped VBS payload.[121][122]",
+      "LitePowercan create a scheduled task to enable persistence mechanisms.[123]",
+      "LockBit 2.0can be executed via scheduled task.[124]",
+      "Lokibotembedded the commandsschtasks /Run /TN \\Microsoft\\Windows\\DiskCleanup\\SilentCleanup /Iinside a batch script.[125]",
+      "Luciferhas established persistence by creating the following scheduled taskschtasks /create /sc minute /mo 1 /tn QQMusic ^ /tr C:Users\\%USERPROFILE%\\Downloads\\spread.exe /F.[126]",
+      "LuminousMothhas created scheduled tasks to establish persistence for their tools.[127]",
+      "The different components ofMacheteare executed by Windows Task Scheduler.[128][129]",
+      "Machetehas created scheduled tasks to maintainMachete's persistence.[130]",
+      "Magic Houndhas used scheduled tasks to establish persistence and execution.[131][132]",
+      "MagicRATcan persist via scheduled tasks.[133]",
+      "Mangocan create a scheduled task to run every 32 seconds to communicate with C2 and execute received commands.[113]",
+      "Matryoshkacan establish persistence by adding a Scheduled Task named \"Microsoft Boost Kernel Optimization\".[134][135]",
+      "Mazehas created scheduled tasks using name variants such as \"Windows Update Security\", \"Windows Update Security Patches\", and \"Google Chrome Security Update\", to launchMazeat a specific time.[136]",
+      "MCMDcan use scheduled tasks for persistence.[137]",
+      "menuPasshas used a script (atexec.py) to execute a command on a target machine via Task Scheduler.[138]",
+      "Meteorexecution begins from a scheduled task namedMicrosoft\\Windows\\Power Efficiency Diagnostics\\AnalyzeAlland it creates a separate scheduled task calledmstaskto run the wiper only once at 23:55:00.[139]",
+      "Milancan establish persistence on a targeted host with scheduled tasks.[140][141]",
+      "Moleratshas created scheduled tasks to persistently run VBScripts.[142]",
+      "Moonstone Sleetused scheduled tasks for program execution during initial access to victim machines.[143]",
+      "MuddyWaterhas used scheduled tasks to establish persistence.[144]",
+      "MultiLayer Wipercreates a malicious scheduled task that launches a batch file to remove Windows Event Logs.[145]",
+      "Mustang Pandahas created a scheduled task to execute additional malicious software, as well as maintain persistence.[146][147][148]",
+      "Naikonhas used schtasks.exe for lateral movement in compromised networks.[149]",
+      "NETWIREcan create a scheduled task to establish persistence.[150]",
+      "Nightdooruses scheduled tasks for persistence to load the final malware payload into memory.[151]",
+      "NotPetyacreates a task to reboot the system one hour after infection.[152]",
+      "OilRighas created scheduled tasks that run a VBScript to execute a payload on victim machines.[153][154][155][156]",
+      "Okrum's installer can attempt to achieve persistence by creating a scheduled task.[157]",
+      "OopsIEcreates a scheduled task to run itself every three minutes.[153][158]",
+      "DuringOperation CuckooBees, the threat actors used scheduled tasks to execute batch scripts for lateral movement with the following command:SCHTASKS /Create /S <IP Address> /U <Username> /p <Password> /SC ONCE /TN test /TR <Path to a Batch File> /ST <Time> /RU SYSTEM.[159]",
+      "DuringOperation Dream Job,Lazarus Groupcreated scheduled tasks to set a periodic execution of a remote XSL script.[160]",
+      "DuringOperation Wocao, threat actors used scheduled tasks to execute malicious PowerShell code on remote systems.[161]",
+      "APatchworkfile stealer can run a TaskScheduler DLL to add persistence.[162]",
+      "PowerSploit'sNew-UserPersistenceOptionPersistence argument can be used to establish via aScheduled Task/Job.[163][164]",
+      "POWERSTATShas established persistence through a scheduled task using the command\"C:\\Windows\\system32\\schtasks.exe\" /Create /F /SC DAILY /ST 12:00 /TN MicrosoftEdge /TR \"c:\\Windows\\system32\\wscript.exe C:\\Windows\\temp\\Windows.vbe\".[165]",
+      "POWRUNERpersists through a scheduled task that executes it every minute.[166]",
+      "Prestigehas been executed on a target system through a scheduled task created bySandworm TeamusingImpacket.[167]",
+      "Pteranodonschedules tasks to invoke its components in order to establish persistence.[168][169]",
+      "QakBothas the ability to create scheduled tasks for persistence.[170][171][172][173][174][175][176][177]",
+      "QUADAGENTcreates a scheduled task to maintain persistence on the victim’s machine.[154]",
+      "QuasarRATcontains a .NET wrapper DLL for creating and managing scheduled tasks for maintaining persistence upon reboot.[178][179]",
+      "RainyDaycan use scheduled tasks to achieve persistence.[149]",
+      "Ramsaycan schedule tasks via the Windows COM API to maintain persistence.[180]",
+      "Rancorlaunched a scheduled task to gain persistence using theschtasks /create /sccommand.[181]",
+      "RedCurlhas created scheduled tasks for persistence.[182][183][184]",
+      "Remexiutilizes scheduled tasks as a persistence mechanism.[185]",
+      "RemoteCMDcan execute commands remotely by creating a new schedule task on the remote system[186]",
+      "Revenge RATschedules tasks to run malicious scripts at different intervals.[187]",
+      "RTMtries to add a scheduled task to establish persistence.[188][189]",
+      "Ryukcan remotely create a scheduled task to execute itself on a system.[190]",
+      "Saint Bothas created a scheduled task named \"Maintenance\" to establish persistence.[191]",
+      "Sandworm Teamleveraged SHARPIVORY, a .NET dropper that writes embedded payload to disk and uses scheduled tasks to persist on victim machines.[192]",
+      "schtasksis used to schedule tasks on a Windows system to run at a specific date and time.[193]",
+      "ServHelpercontains modules that will useschtasksto carry out malicious operations.[194]",
+      "Shamooncopies an executable payload to the target system by usingSMB/Windows Admin Sharesand then scheduling an unnamed task to execute the malware.[195][196]",
+      "SharpDiscocan create scheduled tasks to execute reverse shells that read and write data to and from specified SMB shares.[65]",
+      "SharpStagehas a persistence component to write a scheduled task for the payload.[197]",
+      "Sibothas been executed via a scheduled task.[93]",
+      "Silencehas used scheduled tasks to stage its operation.[198]",
+      "Smoke Loaderlaunches a scheduled task.[199]",
+      "Solarcan create scheduled tasks named Earth and Venus, which run every 30 and 40 seconds respectively, to support C2 and exfiltration.[113]",
+      "During theSolarWinds Compromise,APT29usedschedulerandschtasksto create new tasks on remote host as part of their lateral movement. They manipulated scheduled tasks by updating an existing legitimate task to execute their tools and then returned the scheduled task to its original configuration.APT29also created a scheduled task to maintainSUNSPOTpersistence when the host booted.[200][201][202]",
+      "SoreFangcan gain persistence through use of scheduled tasks.[203]",
+      "Spicahas created a scheduled task namedCalendarCheckerto establish persistence.[204]",
+      "SQLRathas created scheduled tasks in%appdata%\\Roaming\\Microsoft\\Templates\\.[81]",
+      "Stealth Falconmalware creates a scheduled task entitled \"IE Web Cache\" to execute a malicious file hourly.[205]",
+      "Stuxnetschedules a network job to execute two minutes after host infection.[206]",
+      "SUGARDUMPhas created scheduled tasks calledMicrosoftInternetExplorerCrashRepoeterTaskMachineUAandMicrosoftEdgeCrashRepoeterTaskMachineUA, which were configured to executeCrashReporter.exeduring user logon.[207]",
+      "SVCReadycan create a scheduled task namedRecoveryExTaskto gain persistence.[208]",
+      "TA2541has used scheduled tasks to establish persistence for installed tools.[209]",
+      "Tarraskis able to create \"hidden\" scheduled tasks for persistence.[5]",
+      "ToddyCathas used scheduled tasks to execute discovery commands and scripts for collection.[210]",
+      "Tomirishas usedSCHTASKS /CREATE /SC DAILY /TN StartDVL /TR \"[path to self]\" /ST 10:00to establish persistence.[211]",
+      "TrickBotcreates a scheduled task on the system that provides persistence.[212][213][214]",
+      "In theTriton Safety Instrumented System Attack,TEMP.Velesinstalled scheduled tasks defined in XML files.[215]",
+      "Valakhas used scheduled tasks to execute additional payloads and to gain persistence on a compromised host.[216][217][218]",
+      "Winter Vivernexecuted PowerShell scripts that would subsequently attempt to establish persistence by creating scheduled tasks objects to periodically retrieve and execute remotely-hosted payloads.[219]",
+      "Wizard Spiderhas used scheduled tasks to establish persistence forTrickBotand other malware.[220][221][222][223][224]",
+      "XLoadercan create scheduled tasks for persistence.[225]",
+      "ytyestablishes persistence by creating a scheduled task with the commandSchTasks /Create /SC DAILY /TN BigData /TR \" + path_file + \"/ST 09:30\".[226]",
+      "Zebrocyhas a command to create a scheduled task for persistence.[227]",
+      "zwShellhas used SchTasks for execution.[228]",
+      "ZxxZhas used scheduled tasks for persistence and execution.[37]"
+    ]
+
+Please identify the behavioral patterns from these examples and relate them to the technique described above.
+
+---------------------------------------------------------------------------
+
+Likely attack patterns for T1036.004 (Malicious File Execution) may include:
+
+1. Task Name Masquerading
+Adversaries often assign legitimate-sounding names to malicious tasks:
+
+Examples:
+
+MicrosoftCrashHandlerUAC
+
+Java Maintenance64
+
+WinUpdate
+
+Google Chrome Security Update
+
+Microsoft Boost Kernel Optimization
+
+MicrosoftEdge
+
+IE Web Cache
+
+BigData
+
+Maintenance
+
+Detection Insight: These names resemble known system components, software update mechanisms, or generic administrative names to avoid suspicion.
+
+2. Use of schtasks.exe with /Create or /Change Flags
+Malicious scheduled task creation is usually done via:
+
+schtasks.exe /Create ...
+
+schtasks.exe /Change ...
+
+Often accompanied by:
+
+/TN (Task Name)
+
+/TR (Task Action)
+
+/SC (Schedule)
+
+/ST (Start Time)
+
+/RU (User Account)
+
+3. Execution Paths Pointing to Non-Standard or Suspicious Locations
+The /TR parameter often references:
+
+C:\Users\Public\...
+
+C:\Windows\Temp\...
+
+Scripts like .vbs, .vbe, .bat, or .ps1
+
+DLLs masquerading as system binaries
+
+4. Frequent Scheduling Intervals
+Tasks are often set to run:
+
+Every minute
+
+At startup/logon
+
+On system events
+
+Once (for one-time impact like a wiper)
+
+
+
+Registry Artifacts:
+
+Scheduled task information may be altered in the registry (e.g., hiding via SD value deletion)
+Please keep these scenarios in mind when constructing detection logic for this technique.
+
+---------------------------------------------------------------------------
+
+The following detection techniques are commonly used to identify this TTP:
+
+      "Monitor executed commands and arguments that may attempt to manipulate the name of a task or service to make it appear legitimate or benign.",
+      "Monitor for contextual data about a scheduled job, which may include information such as name, timing, command(s), etc.",
+      "Monitor for changes made to scheduled jobs for unexpected modifications to execution launch",
+      "Monitor for newly constructed services/daemons. Data and events should not be viewed in isolation, but as part of a chain of behavior that could lead to other activities, such as network connections made for Command and Control, learning details about the environment through Discovery, and Lateral Movement.",
+      "Monitor for changes made to services for unexpected modifications to names, descriptions, and/or start types"
+   
+Please analyze how these detection methods map to the suspicious behaviors described above.
+
+---------------------------------------------------------------------------
+
+Our detection events follow this schema:
+
+Each event contains:
+- srcNode: The source entity (usually a process)
+  - Fields: UUID, Name, Image, Cmdline, Type, Pid
+- dstNode: The destination entity (may be null or Process, File, Registry, or Network)
+  - Fields: UUID, Name or Path or Key, Image, Cmdline, Dstaddress, Port, Type
+- relation: Describes the action from source to destination
+  - Possible values:
+    - File: CreateFile, WriteFile, ReadFile, CloseFile, etc.
+    - Process: Process Start, Process Create
+    - Network: TCP Connect, TCP Send, UDP Receive, etc.
+    - Registry: RegOpenKey, RegSetValue, RegQueryValue, etc.
+- timestamp: UNIX timestamp
+- label: Ground-truth label (e.g., benign or TTP ID)
+
+Example event:
+{
+  "srcNode": {
+    "Image": "C:\\Windows\\explorer.exe",
+    "Cmdline": "C:\\Windows\\explorer.exe",
+    "Type": "Process"
+  },
+  "dstNode": {
+    "Image": "C:\\Users\\user\\Downloads\\malware.scr",
+    "Cmdline": "C:\\Users\\user\\Downloads\\malware.scr",
+    "Type": "Process"
+  },
+  "relation": "Process Create"
+}
+
+---------------------------------------------------------------------------
+
+Now, based on the above information, please generate a complete Sigma rule in valid YAML format.
+
+Special instructions (additions):
+- Include separate detection blocks for:
+  1) Process Create|Start of risky extensions
+  2) Office/Browser CreateFile|WriteFile of risky extensions
+  3) Two-stage chain: Office -> cmd|powershell -> wscript|cscript|rundll32
+- When dstNode.Image is null, fall back to dstNode.Name
+- Directory check: raise if path NOT under \Windows\system32 OR \Program Files, or simply omit directory filter
+- Detect double-extension camouflage (regex: \.(doc|pdf|xls)\s*\.(exe|scr|vbs)$)
+- Support both Process Create and Process Start
+
+---------------------------------------------------------------------------
+
+Your output must include the following fields:
+
+- title or name
+- id: A randomly generated UUID
+- description
+- status: production
+- author: auto-generated
+- date: Use today’s date in YYYY-MM-DD format
+- logsource:
+  - category: custom
+  - product: windows
+- detection: with at least 2–3 detection branches for different execution patterns
+- condition: combine relevant detections using or
+- tags: Include ATT&CK ID (e.g., attack.T1204.002) and tactic (e.g., execution)
+- references: Optional
+- level: high / medium / low
+
+Output only the YAML rule inside a Markdown code block using triple backticks and yaml.  
+Do not include explanations, JSON examples, or extra commentary.

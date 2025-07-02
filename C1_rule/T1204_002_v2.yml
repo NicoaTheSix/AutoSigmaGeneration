@@ -1,0 +1,143 @@
+title: User Execution of Malicious Files via Risky Extensions and Office/Browsers
+id: 2e5051d3-b9ae-4a4d-bd6b-6a25b373a97c
+description: Detects user-driven execution of malicious files by monitoring for risky file extensions, Office/Browser application behaviors, and double-extension masquerading consistent with MITRE ATT&CK T1204.002.
+status: production
+author: auto-generated
+date: 2025-07-02
+logsource:
+  category: custom
+  product: windows
+
+detection:
+  risky_extension_execution:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    or:
+      - dstNode.Image|endswith:
+          - '.exe'
+          - '.scr'
+          - '.lnk'
+          - '.vbs'
+          - '.js'
+          - '.bat'
+          - '.cmd'
+          - '.pif'
+          - '.cpl'
+          - '.reg'
+          - '.docm'
+          - '.xlsm'
+      - dstNode.Name|endswith:
+          - '.exe'
+          - '.scr'
+          - '.lnk'
+          - '.vbs'
+          - '.js'
+          - '.bat'
+          - '.cmd'
+          - '.pif'
+          - '.cpl'
+          - '.reg'
+          - '.docm'
+          - '.xlsm'
+
+  office_browser_file_write:
+    relation|contains:
+      - 'CreateFile'
+      - 'WriteFile'
+    srcNode.Image|endswith:
+      - 'winword.exe'
+      - 'excel.exe'
+      - 'powerpnt.exe'
+      - 'outlook.exe'
+      - 'chrome.exe'
+      - 'msedge.exe'
+      - 'firefox.exe'
+      - 'cmd.exe'
+      - 'powershell.exe'
+      - 'wscript.exe'
+      - 'cscript.exe'
+    or:
+      - dstNode.Image|endswith:
+          - '.exe'
+          - '.scr'
+          - '.lnk'
+          - '.vbs'
+          - '.js'
+          - '.bat'
+          - '.cmd'
+          - '.pif'
+          - '.cpl'
+          - '.reg'
+          - '.docm'
+          - '.xlsm'
+      - dstNode.Name|endswith:
+          - '.exe'
+          - '.scr'
+          - '.lnk'
+          - '.vbs'
+          - '.js'
+          - '.bat'
+          - '.cmd'
+          - '.pif'
+          - '.cpl'
+          - '.reg'
+          - '.docm'
+          - '.xlsm'
+
+  double_extension_masquerade:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    or:
+      - dstNode.Image|re: '\.(doc|pdf|xls)\s*\.(exe|scr|vbs)$'
+      - dstNode.Name|re: '\.(doc|pdf|xls)\s*\.(exe|scr|vbs)$'
+
+  office_browser_to_script_chain:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    srcNode.Image|endswith:
+      - 'winword.exe'
+      - 'excel.exe'
+      - 'powerpnt.exe'
+      - 'outlook.exe'
+      - 'chrome.exe'
+      - 'msedge.exe'
+      - 'firefox.exe'
+    or:
+      - dstNode.Image|endswith:
+          - 'cmd.exe'
+          - 'powershell.exe'
+      - dstNode.Name|endswith:
+          - 'cmd.exe'
+          - 'powershell.exe'
+
+  script_to_lolbin_chain:
+    relation|contains:
+      - 'Process Create'
+      - 'Process Start'
+    srcNode.Image|endswith:
+      - 'cmd.exe'
+      - 'powershell.exe'
+    or:
+      - dstNode.Image|endswith:
+          - 'wscript.exe'
+          - 'cscript.exe'
+          - 'rundll32.exe'
+      - dstNode.Name|endswith:
+          - 'wscript.exe'
+          - 'cscript.exe'
+          - 'rundll32.exe'
+
+condition: >
+  risky_extension_execution or
+  office_browser_file_write or
+  double_extension_masquerade or
+  (office_browser_to_script_chain and script_to_lolbin_chain)
+
+tags:
+  - attack.T1204.002
+  - execution
+level: high
+references: []

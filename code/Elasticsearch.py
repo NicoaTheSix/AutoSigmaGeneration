@@ -1,7 +1,8 @@
 import subprocess
 import json
+import os
 def queryTranslator():
-    sigma_file = r"E:\Automatic-Malware-Generation-Using-LLMs\response\IdaVw3lbvf.yaml"
+    sigma_file = os.path.join(os.getcwd(),"response","UCoXqAi7TN_sigmarule")
     cmd = ["sigma", "convert","-t", "esql","--without-pipeline",sigma_file]
     result = subprocess.run(cmd, capture_output=True, text=True)
     query=result.stdout
@@ -17,10 +18,10 @@ query = {
         }
     }
 }
-#print()
-index = "sagac1"  # 你的 index 名稱
+if __name__ =="__main__":
+    index = "sagac1"  # 你的 index 名稱
 
-query=json.dumps(query)#
-#query=f"""{json.dumps({"query":queryTranslator()})}"""
-print(query)
-print(elsticSearch_search(query))
+    query=json.dumps(query)#
+    #query=f"""{json.dumps({"query":queryTranslator()})}"""
+    print(query)
+    print(elsticSearch_search(query))

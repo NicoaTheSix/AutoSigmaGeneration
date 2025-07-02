@@ -4,6 +4,8 @@ from tqdm import tqdm
 from openai import OpenAI
 import settings
 import uuid
+import argparse
+import sys
 
 from settings import home_path,response_title,response_folder_path,targetOS,dir_ttp,dict_ttp,csv_ttp,csv_ttp_noPr,dir_cti,generate_secure_random_string,loadSettings,saveRecord,file_encoding
 empty_char=""
@@ -90,7 +92,7 @@ def sigmaruleGeneration(dict_input:dict={},display:bool=False):
 function    :translate Sigma rule to KQL
 """
 def KQLGeneration(input:str="",display:bool=False):
-    print("[+]Start generating sigma rule.")
+    print("[+]Start generating KQL.")
     """
     """
     SystemtPrompt=textLoader(txtName=f"SystemPrompt_KQLGeneration")
@@ -103,23 +105,7 @@ def KQLGeneration(input:str="",display:bool=False):
     KQL=Llmrequest(messages)
     print("[-]Finish generating sigma rule.")
     return KQL
-"""
 
-code :workflow of the automated generation malware written in C++
-以dictionary作為輸入
-需要指定進行的任務為生成惡意程式或是只生成任務列表
-
-    inputType:
-        software,   某個軟體的描述(s2m)
-        group,      某個攻擊者團體的描述(g2m)
-        campaign,   某個攻擊事件的描述(c2m)
-        technique,  某個技術的描述(t2m)
-        tactic      某個戰術的描述(Tt2m)
-    operation:
-        1 僅生成action list(攻擊計畫)
-        2 生成action list(攻擊計畫)之後繼續生成程式碼
-        3 生成action list與程式碼之後編譯出最終的惡意軟體
-"""
 
 def workflow_sigmaRule(dict_input:dict={"higasa":"T1204	User Execution	Manual execution by user (opening LNK file)","id":str(uuid.uuid4())}):
     """
@@ -134,7 +120,7 @@ def workflow_sigmaRule(dict_input:dict={"higasa":"T1204	User Execution	Manual ex
     print(sigmarule_refined)
     #整合basic sigma rule跟refined detecion rule
     result=sigmaCombination(dict_input={"basic sigma rule":sigmarule,"refined detection rule":sigmarule_refined})
-    resultPattern=re.compile(r'<output>(.*?)</output>', re.DOTALL) 
+    resultPattern=re.compile(r'<output>(.*?)</output>', re.DOTALL)
     resultContent = resultPattern.findall(result)[0]
     filename=generate_secure_random_string(10)
     with open(os.path.join(os.getcwd(),"response",filename+"_sigmarule.yaml"),"w",encoding=settings.file_encoding)as f:
@@ -197,7 +183,16 @@ def elsticSearch_search(query,index:str="sagac1"):
     result = subprocess.run(cmd, capture_output=True, text=True)
     return result.stdout
 
-if __name__ =='__main__':
+
+
+
+def workflow1():
+    print("Executing workflow 1")
+    # TODO: Add your workflow1 logic here
+
+
+def workflow2():
+    print("Executing workflow 2")
     aaaa=["T1059	Command-Line Interface	Starts CMD.EXE for commands (WinRAR.exe, wscript.exe) execution","T1106	Execution through API	Application (AcroRd32.exe) launched itself","T1053	Scheduled Task	Loads the Task Scheduler DLL interface (Officeupdate.exe)","T1064	Scripting	Executes scripts (34fDFkfSD38.js)","T1204	User Execution	Manual execution by user (opening LNK file)","Persistence	T1060	Registry Run Keys / Startup Folder	Writes to a start menu file (Officeupdate.exe)","T1053	Scheduled Task	Uses Task Scheduler to run other applications (Officeupdate.exe)","Privilege Escalation	T1053	Scheduled Task	Uses Task Scheduler to run other applications (Officeupdate.exe)","Defense Evasion	T1064	Scripting	Executes scripts (34fDFkfSD38.js)","T1140	Deobfuscate/Decode Files or Information	certutil to decode Base64 binaries, expand.exe to decompress a CAB file","Discovery	T1012	Query Registry	Reads the machine GUID from the registry","T1082	System Information Discovery	Reads the machine GUID from the registry","T1016	System Network Configuration Discovery	Uses IPCONFIG.EXE to discover IP address"]
     descriptionFromSaga=[
     "T1547.001	Boot or Logon Autostart Execution - Registry Run Keys/Startup Folder	Creates startup shortcut (sllauncherENU.dll (copy).lnk) via cscript.exe execution",
@@ -223,4 +218,106 @@ if __name__ =='__main__':
         dict_input={"higasa":i}
         query=workflow_sigmaRule(dict_input=dict_input)
         print(elsticSearch_search(query))
+
+    # TODO: Add your workflow2 logic here
+
+
+def workflow3():
+    print("Executing workflow 3")
+    # TODO: Add your workflow3 logic here
+    with open(os.path.join(os.getcwd(),"response","VbGfW2bLcK_sigmarule.yml"),"r",encoding='utf-8')as f:
+        resultContent=f .read()
+    query=elasticSearchQueryDSLGeneration(resultContent)
+    print(query)
+    print(elsticSearch_search(query))
+    return
+def workflow4():
+    print("Executing workflow 4")
+    with open(os.path.join(os.getcwd(),"response","test.yml"),"r",encoding='utf-8')as f:
+        Content=f .read()
+    print(KQLGeneration(Content))
+    # TODO: Add your workflow4 logic here
+
+
+def workflow5():
+    print("Executing workflow 5")
+    # TODO: Add your workflow5 logic here
+
+    for i in os.listdir(os.path.join(os.getcwd(),"C1_rule")):
+        with open(os.path.join(os.getcwd(),"C1_rule",i),"r",encoding='utf-8')as f:
+            Content=f.read()
+        query_KQL=KQLGeneration(Content)
+        print(query_KQL)
+        with open(os.path.join(os.getcwd(),"response",i.split(".")[0]),"w",encoding='utf-8')as f:
+            f.write(query_KQL)
+        print(KQLGeneration(Content))
+    
+
+def workflow6():
+    print("Executing workflow 6")
+    # TODO: Add your workflow6 logic here
+
+
+def workflow7():
+    print("Executing workflow 7")
+    # TODO: Add your workflow7 logic here
+
+
+def workflow8():
+    print("Executing workflow 8")
+    # TODO: Add your workflow8 logic here
+
+
+def workflow9():
+    print("Executing workflow 9")
+    # TODO: Add your workflow9 logic here
+
+
+def workflow10():
+    print("Executing workflow 10")
+    # TODO: Add your workflow10 logic here
+
+
+# Mapping of input choices to workflow functions
+WORKFLOWS = {
+    '1': workflow1,
+    '2': workflow2,
+    '3': workflow3,
+    '4': workflow4,
+    '5': workflow5,
+    '6': workflow6,
+    '7': workflow7,
+    '8': workflow8,
+    '9': workflow9,
+    '10': workflow10,
+}
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='CLI to execute predefined workflows (1-10).'
+    )
+    parser.add_argument(
+        'workflow',
+        choices=WORKFLOWS.keys(),
+        help='Workflow number to execute (1-10)'
+    )
+    args = parser.parse_args()
+
+    # Execute the selected workflow
+    func = WORKFLOWS[args.workflow]
+    func()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        # No arguments provided, show help
+        print("Please specify a workflow number (1-10).\n")
+        parser = argparse.ArgumentParser(
+            description='CLI to execute predefined workflows (1-10).'
+        )
+        parser.print_help()
+        sys.exit(1)
+
+    main()
+
 

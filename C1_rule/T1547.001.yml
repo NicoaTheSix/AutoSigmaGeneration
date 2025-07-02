@@ -1,0 +1,86 @@
+title: Malicious File Execution via Registry and Startup Folder (T1547.001)
+id: 9d2897d6-542b-4b33-8d02-f4125d48fa8f
+description: Detects attempts to achieve persistence via registry run keys or startup folder file drops, especially involving risky file extensions, suspicious parent-child process chains, or masquerading techniques.
+status: production
+author: auto-generated
+date: 2025-07-02
+logsource:
+  category: custom
+  product: windows
+detection:
+  risky_exec_extensions:
+    relation|contains:
+      - Process Create
+      - Process Start
+    dstNode.Image|endswith:
+      - .exe
+      - .scr
+      - .dll
+      - .com
+      - .bat
+      - .vbs
+    dstNode.Image|re: '\\.(doc|pdf|xls)\\s*\\.(exe|scr|vbs)$'
+    condition: all
+
+  office_file_drop:
+    relation|contains:
+      - CreateFile
+      - WriteFile
+    srcNode.Image|contains:
+      - winword.exe
+      - excel.exe
+      - powerpnt.exe
+      - outlook.exe
+      - chrome.exe
+      - firefox.exe
+      - iexplore.exe
+      - msedge.exe
+    dstNode.Path|re: '.*\\Start Menu\\Programs\\Startup\\.*\\.(exe|lnk|vbs|bat|js)$'
+    condition: all
+
+  chained_execution:
+    relation: Process Create
+    srcNode.Image|contains:
+      - winword.exe
+      - excel.exe
+      - powerpnt.exe
+    dstNode.Image|contains:
+      - cmd.exe
+      - powershell.exe
+    condition: all
+
+  second_stage_scripting:
+    relation: Process Create
+    srcNode.Image|contains:
+      - cmd.exe
+      - powershell.exe
+    dstNode.Image|contains:
+      - wscript.exe
+      - cscript.exe
+      - rundll32.exe
+    condition: all
+
+  registry_persistence:
+    relation: RegSetValue
+    dstNode.Key|re: '(?i).*\\\\(Run|RunOnce|Windows|Explorer\\\\Shell Folders|Session Manager).*'
+    dstNode.Cmdline|contains:
+      - .exe
+      - .dll
+      - .vbs
+      - rundll32
+      - powershell
+      - cmd
+    condition: all
+
+  startup_folder_drop:
+    relation|contains:
+      - CreateFile
+      - WriteFile
+    dstNode.Path|re: '.*\\Start Menu\\Programs\\Startup\\.*\\.(exe|lnk|vbs|bat|js)$'
+    condition: all
+
+condition: risky_exec_extensions or office_file_drop or chained_execution or second_stage_scripting or registry_persistence or startup_folder_drop
+tags:
+  - attack.T1547.001
+  - persistence
+level: high

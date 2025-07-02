@@ -1,0 +1,83 @@
+title: Suspicious Scheduled Task Masquerading and Execution Chain
+id: 2e850370-4070-45c5-8777-1e5a7e92c3a3
+description: Detects adversary techniques related to T1036.004 (Masquerading: Malicious File or Task Names), especially via schtasks.exe with suspicious task names, paths, and execution chains.
+status: production
+author: auto-generated
+date: 2025-07-02
+logsource:
+  category: custom
+  product: windows
+detection:
+  schtasks_masquerade:
+    relation|contains:
+      - Process Create
+      - Process Start
+    srcNode.Image|endswith: 
+      - \schtasks.exe
+    srcNode.Cmdline|contains:
+      - /create
+      - /tn
+    srcNode.Cmdline|regex:
+      - (?i)(WinUpdate|MicrosoftEdge|Google Chrome|Java Maintenance|IE Web Cache|BigData|Maintenance|Microsoft.*|Windows Update.*)
+  
+  suspicious_exec_path:
+    relation|contains:
+      - Process Create
+      - Process Start
+    srcNode.Image|endswith: 
+      - \schtasks.exe
+    srcNode.Cmdline|contains:
+      - /tr
+    srcNode.Cmdline|regex:
+      - (?i)(C:\\Users\\Public\\|C:\\Windows\\Temp\\|AppData\\Roaming)
+      - \.(vbs|vbe|ps1|bat|dll|scr|exe)\b
+
+  double_extension_camouflage:
+    relation|contains:
+      - Process Create
+      - Process Start
+    dstNode.Image|endswith:
+      - .exe
+      - .scr
+      - .vbs
+    dstNode.Image|regex:
+      - (?i)\.(doc|pdf|xls)\s*\.(exe|scr|vbs)$
+    dstNode.Image|endswith: null
+    dstNode.Name|regex:
+      - (?i)\.(doc|pdf|xls)\s*\.(exe|scr|vbs)$
+
+  office_macro_stage1:
+    relation: File WriteFile
+    srcNode.Image|endswith:
+      - \winword.exe
+      - \excel.exe
+      - \powerpnt.exe
+      - \outlook.exe
+      - \chrome.exe
+      - \msedge.exe
+      - \firefox.exe
+    dstNode.Name|endswith:
+      - .vbs
+      - .vbe
+      - .bat
+      - .ps1
+      - .exe
+      - .scr
+
+  staged_exec_chain:
+    relation|contains:
+      - Process Create
+      - Process Start
+    srcNode.Image|endswith:
+      - \cmd.exe
+      - \powershell.exe
+    dstNode.Image|endswith:
+      - \wscript.exe
+      - \cscript.exe
+      - \rundll32.exe
+
+condition: schtasks_masquerade or suspicious_exec_path or double_extension_camouflage or (office_macro_stage1 and staged_exec_chain)
+tags:
+  - attack.T1036.004
+  - attack.execution
+level: high

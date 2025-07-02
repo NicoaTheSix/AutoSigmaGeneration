@@ -1,0 +1,66 @@
+
+logsource:
+  category: custom
+  product: windows
+
+detection:
+  browser_tcp:
+    relation:
+      - TCP Connect
+      - TCP Receive
+    srcNode.Image|endswith:
+      - chrome.exe
+      - msedge.exe
+      - firefox.exe
+      - brave.exe
+      - opera.exe
+
+  delivery_write:
+    relation:
+      - WriteFile
+      - CreateFile
+    srcNode.Image|endswith:
+      - chrome.exe
+      - msedge.exe
+      - firefox.exe
+      - brave.exe
+      - outlook.exe
+      - thunderbird.exe
+      - opera.exe
+    dstNode.Name|endswith:
+      - .exe
+      - .js
+      - .docm
+      - .xlsm
+      - .pptm
+      - .zip
+      - .rar
+      - .scr
+      - .lnk
+      - .bat
+      - .vbs
+
+  office_spawn:
+    relation: Process Create
+    srcNode.Image|endswith:
+      - winword.exe
+      - excel.exe
+      - powerpnt.exe
+      - outlook.exe
+      - acrord32.exe
+    dstNode.Image|endswith:
+      - powershell.exe
+      - cmd.exe
+      - wscript.exe
+      - cscript.exe
+      - mshta.exe
+
+condition: browser_tcp or delivery_write or office_spawn
+
+tags:
+  - attack.T1566.001
+  - attack.initial_access
+
+references: []
+
+level: high

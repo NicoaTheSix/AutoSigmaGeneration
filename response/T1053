@@ -1,0 +1,3 @@
+<output>
+(risky_extension_execution or office_browser_dropper or double_extension_execution or (srcNode.Image: (winword.exe or excel.exe or powerpnt.exe or outlook.exe) and dstNode.Image: (cmd.exe or powershell.exe) and srcNode.Image: (cmd.exe or powershell.exe) and dstNode.Image: (wscript.exe or cscript.exe or rundll32.exe))
+</output>

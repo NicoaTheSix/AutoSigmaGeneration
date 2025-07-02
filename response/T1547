@@ -1,0 +1,3 @@
+<output>
+(risky_exec_extensions or office_file_drop or chained_execution or second_stage_scripting or registry_persistence or startup_folder_drop)
+</output>

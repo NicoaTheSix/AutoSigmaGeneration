@@ -1,0 +1,3 @@
+<output>
+(browser_tcp or delivery_write or office_spawn) AND (srcNode.Image: (chrome.exe OR msedge.exe OR firefox.exe OR brave.exe OR opera.exe) OR dstNode.Name: (".exe" OR ".js" OR ".docm" OR ".xlsm" OR ".pptm" OR ".zip" OR ".rar" OR ".scr" OR ".lnk" OR ".bat" OR ".vbs") OR (srcNode.Image: (winword.exe OR excel.exe OR powerpnt.exe OR outlook.exe OR acrord32.exe) AND dstNode.Image: (powershell.exe OR cmd.exe OR wscript.exe OR cscript.exe OR mshta.exe)))
+</output>

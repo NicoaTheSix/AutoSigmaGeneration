@@ -1,0 +1,127 @@
+You are a senior cybersecurity detection engineer with expertise in threat detection, MITRE ATT&CK TTPs, and writing Sigma rules. Your task is to write Sigma detection rules based on the following inputs, which include attack descriptions, procedures, and detection patterns.
+
+You will follow a multi-step process where you will be given TTP context, attack procedures, current detection methods, and our proprietary event log format. Your final task will be to write a Sigma rule tailored to our log format.
+
+---------------------------------------------------------------------------
+
+The MITRE ATT&CK technique we want to detect is:
+
+TTP Name: User Execution: Malicious File  
+TTP ID: T1204.002  
+Description:  
+An adversary may rely upon a user opening a malicious file in order to gain execution. Users may be subjected to social engineering to get them to open a file that will lead to code execution. This user action will typically be observed as follow-on behavior from Spearphishing Attachment. Adversaries may use several types of files that require a user to execute them, including .doc, .pdf, .xls, .rtf, .scr, .exe, .lnk, .pif, .cpl, and .reg.
+
+Adversaries may employ various forms of Masquerading and Obfuscated Files or Information to increase the likelihood that a user will open and successfully execute a malicious file. These methods may include using a familiar naming convention and/or password protecting the file and supplying instructions to a user on how to open it.[1]
+
+While Malicious File frequently occurs shortly after Initial Access it may occur at other phases of an intrusion, such as when an adversary places a file in a shared directory or on a user's desktop hoping that a user will click on it. This activity may also be seen shortly after Internal Spearphishing. 
+
+Please analyze this TTP and summarize the key suspicious behaviors or indicators typically associated with this technique.
+
+---------------------------------------------------------------------------
+
+Here are procedure examples that are known to trigger this TTP:
+
+- Astaroth has used malicious files including VBS, LNK, and HTML for execution.
+- APT28 attempted to get users to click on Microsoft Office attachments containing malicious macro scripts.
+- APT29 has used various forms of spearphishing attempting to get a user to open attachments, including, but not limited to, malicious Microsoft Word documents, .pdf, and .lnk files.
+- admin@338 has attempted to get victims to launch malicious Microsoft Word attachments delivered via spearphishing emails.
+
+Please identify the behavioral patterns from these examples and relate them to the technique described above.
+
+---------------------------------------------------------------------------
+
+Likely attack patterns for T1204.002 (Malicious File Execution) may include:
+
+- File extensions such as .lnk, .scr, .docm, .xlsm, .vbs, .js, .bat, .exe, etc., being executed directly
+- Office apps (e.g., winword.exe, excel.exe, powerpnt.exe) spawning scripting engines like PowerShell or WScript
+- Execution of files from user-writable directories (e.g., Desktop, Downloads, AppData, Temp)
+- No parent-child chain beyond user-launched file → payload
+- High-risk files being opened by explorer.exe, outlook.exe, or other user-facing apps
+
+Please keep these scenarios in mind when constructing detection logic for this technique.
+
+---------------------------------------------------------------------------
+
+The following detection techniques are commonly used to identify this TTP:
+
+- (sourcetype=WinEventLog:Microsoft-Windows-Sysmon/Operational EventCode="11") file_path="system32" AND file_extension=".bat"
+- sourcetype=WinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=11| search file_path IN ("/Downloads/", "/Temp/", "/Desktop/")| stats count by file_name file_extension file_path user| where file_extension IN ("doc", "docx", "pdf", "xls", "rtf", "exe", "scr", "lnk", "pif", "cpl", "zip")
+- (sourcetype=WinEventLog:Security EventCode=4688) OR (sourcetype=Sysmon EventCode=1)| search process_name IN ("WINWORD.EXE", "EXCEL.EXE", "PDFReader.exe", "7z.exe", "powershell.exe", "cmd.exe")| stats count by process_name parent_process_name command_line user| where parent_process_name IN ("explorer.exe", "outlook.exe", "thunderbird.exe")
+
+Please analyze how these detection methods map to the suspicious behaviors described above.
+
+---------------------------------------------------------------------------
+
+Our detection events follow this schema:
+
+Each event contains:
+- srcNode: The source entity (usually a process)
+  - Fields: UUID, Name, Image, Cmdline, Type, Pid
+- dstNode: The destination entity (may be null or Process, File, Registry, or Network)
+  - Fields: UUID, Name or Path or Key, Image, Cmdline, Dstaddress, Port, Type
+- relation: Describes the action from source to destination
+  - Possible values:
+    - File: CreateFile, WriteFile, ReadFile, CloseFile, etc.
+    - Process: Process Start, Process Create
+    - Network: TCP Connect, TCP Send, UDP Receive, etc.
+    - Registry: RegOpenKey, RegSetValue, RegQueryValue, etc.
+- timestamp: UNIX timestamp
+- label: Ground-truth label (e.g., benign or TTP ID)
+
+Example event:
+{
+  "srcNode": {
+    "Image": "C:\\Windows\\explorer.exe",
+    "Cmdline": "C:\\Windows\\explorer.exe",
+    "Type": "Process"
+  },
+  "dstNode": {
+    "Image": "C:\\Users\\user\\Downloads\\malware.scr",
+    "Cmdline": "C:\\Users\\user\\Downloads\\malware.scr",
+    "Type": "Process"
+  },
+  "relation": "Process Create"
+}
+
+---------------------------------------------------------------------------
+
+Now, based on the above information, please generate a complete Sigma rule in valid YAML format.
+
+Special instructions (additions):
+- Include separate detection blocks for:
+  1) Process Create|Start of risky extensions
+  2) CreateFile|WriteFile of risky extensions where srcNode.Image ends with
+     (winword.exe, excel.exe, powerpnt.exe, outlook.exe, chrome.exe, msedge.exe,
+      firefox.exe, cmd.exe, powershell.exe, wscript.exe, cscript.exe)
+  3) Two-stage chain (sequence):
+       a) Office|Browser -> cmd.exe|powershell.exe
+       b) cmd.exe|powershell.exe -> wscript.exe|cscript.exe|rundll32.exe
+     (use Sigma sequence syntax if available; otherwise two blocks + AND)
+- When dstNode.Image is null/empty, compare dstNode.Name with the same patterns.
+- Directory check: optional; trigger if path is **not** under \Windows\system32\ or \Program Files\,
+  or omit directory filtering entirely.
+- Detect double-extension camouflage (regex: \.(doc|pdf|xls)\s*\.(exe|scr|vbs)$) on Image/Name.
+- Support both relation values: Process Create and Process Start.
+
+
+---------------------------------------------------------------------------
+
+Your output must include the following fields:
+
+- title or name
+- id: A randomly generated UUID
+- description
+- status: production
+- author: auto-generated
+- date: Use today’s date in YYYY-MM-DD format
+- logsource:
+  - category: custom
+  - product: windows
+- detection: with at least 2–3 detection branches for different execution patterns
+- condition: combine relevant detections using or
+- tags: Include ATT&CK ID (e.g., attack.T1204.002) and tactic (e.g., execution)
+- references: Optional
+- level: high / medium / low
+
+Output only the YAML rule inside a Markdown code block using triple backticks and yaml.  
+Do not include explanations, JSON examples, or extra commentary.

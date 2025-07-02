@@ -1,0 +1,97 @@
+title: Suspicious Scheduled Task Execution via Malicious Files and Staged Execution
+id: 27e599de-f5d3-4d3a-a5fd-9be3a99c6b0d
+description: Detects suspicious scheduled task behavior involving schtasks abuse, Office/Browser-initiated writes of malicious scripts, and multi-stage execution chains.
+status: production
+author: auto-generated
+date: 2025-07-02
+logsource:
+  category: custom
+  product: windows
+detection:
+  risky_extension_execution:
+    relation|contains:
+      - Process Create
+      - Process Start
+    dstNode.Image|endswith:
+      - ".vbs"
+      - ".vbe"
+      - ".bat"
+      - ".ps1"
+      - ".js"
+      - ".jse"
+      - ".scr"
+      - ".exe"
+      - ".dll"
+    dstNode.Name|endswith:
+      - ".vbs"
+      - ".vbe"
+      - ".bat"
+      - ".ps1"
+      - ".js"
+      - ".jse"
+      - ".scr"
+      - ".exe"
+      - ".dll"
+
+  office_browser_dropper:
+    relation|contains:
+      - CreateFile
+      - WriteFile
+    srcNode.Image|contains:
+      - "winword.exe"
+      - "excel.exe"
+      - "powerpnt.exe"
+      - "outlook.exe"
+      - "iexplore.exe"
+      - "chrome.exe"
+      - "firefox.exe"
+      - "edge.exe"
+    dstNode.Path|endswith:
+      - ".vbs"
+      - ".vbe"
+      - ".bat"
+      - ".ps1"
+      - ".js"
+      - ".jse"
+      - ".scr"
+      - ".exe"
+      - ".dll"
+
+  double_extension_execution:
+    relation|contains:
+      - Process Create
+      - Process Start
+    dstNode.Image|matches: '\.(doc|pdf|xls)\s*\.(exe|scr|vbs)$'
+    dstNode.Name|matches: '\.(doc|pdf|xls)\s*\.(exe|scr|vbs)$'
+
+  office_to_cmd_to_script:
+    relation|contains:
+      - Process Create
+      - Process Start
+    selection_1:
+      srcNode.Image|contains:
+        - "winword.exe"
+        - "excel.exe"
+        - "powerpnt.exe"
+        - "outlook.exe"
+      dstNode.Image|contains:
+        - "cmd.exe"
+        - "powershell.exe"
+    selection_2:
+      srcNode.Image|contains:
+        - "cmd.exe"
+        - "powershell.exe"
+      dstNode.Image|contains:
+        - "wscript.exe"
+        - "cscript.exe"
+        - "rundll32.exe"
+
+  condition: >
+    risky_extension_execution or
+    office_browser_dropper or
+    double_extension_execution or
+    (selection_1 and selection_2)
+tags:
+  - attack.T1053.005
+  - execution
+level: high

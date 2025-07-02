@@ -1,0 +1,428 @@
+You are a senior cybersecurity detection engineer with expertise in threat detection, MITRE ATT&CK TTPs, and writing Sigma rules. Your task is to write Sigma detection rules based on the following inputs, which include attack descriptions, procedures, and detection patterns.
+
+You will follow a multi-step process where you will be given TTP context, attack procedures, current detection methods, and our proprietary event log format. Your final task will be to write a Sigma rule tailored to our log format.
+
+---------------------------------------------------------------------------
+
+The MITRE ATT&CK technique we want to detect is:
+
+TTP Name: User Execution: Malicious File  
+TTP ID: T1547.001 
+    Description: "Adversaries may achieve persistence by adding a program to a startup folder or referencing it with a Registry run key. Adding an entry to the \"run keys\" in the Registry or startup folder will cause the program referenced to be executed when a user logs in.[1]These programs will be executed under the context of the user and will have the account's associated permissions level.The following run keys are created by default on Windows systems:HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnceHKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\RunHKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnceRun keys may exist under multiple hives.[2][3]TheHKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnceExis also available but is not created by default on Windows Vista and newer. Registry run key entries can reference programs directly or list them as a dependency.[1]For example, it is possible to load a DLL at logon using a \"Depend\" key with RunOnceEx:reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx\\0001\\Depend /v 1 /d \"C:\\temp\\evil[.]dll\"[4]Placing a program within a startup folder will also cause that program to execute when a user logs in. There is a startup folder location for individual user accounts as well as a system-wide startup folder that will be checked regardless of which user account logs in. The startup folder path for the current user isC:\\Users\\[Username]\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup. The startup folder path for all users isC:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp.The following Registry keys can be used to set startup folder items for persistence:HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell FoldersHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell FoldersHKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell FoldersHKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell FoldersThe following Registry keys can control automatic startup of services during boot:HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnceHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnceHKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServicesUsing policy settings to specify startup programs creates corresponding values in either of two Registry keys:HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\RunHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\RunPrograms listed in the load value of the registry keyHKEY_CURRENT_USER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windowsrun automatically for the currently logged-on user.By default, the multistringBootExecutevalue of the registry keyHKEY_LOCAL_MACHINE\\System\\CurrentControlSet\\Control\\Session Manageris set toautocheck autochk *. This value causes Windows, at startup, to check the file-system integrity of the hard disks if the system has been shut down abnormally. Adversaries can add other programs or processes to this registry value which will automatically launch at boot.Adversaries can use these configuration locations to execute malware, such as remote access tools, to maintain persistence through system reboots. Adversaries may also useMasqueradingto make the Registry entries look as if they are associated with legitimate programs.",
+
+
+---------------------------------------------------------------------------
+
+Here are procedure examples that are known to trigger this TTP:
+
+      "ADVSTORESHELLachieves persistence by adding itself to theHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunRegistry key.[5][6][7]",
+      "Agent Teslacan add itself to the Registry as a startup program to establish persistence.[8][9]",
+      "Amadeyhas changed the Startup folder to the one containing its executable by overwriting the registry keys.[10][11]",
+      "ANDROMEDAcan establish persistence by dropping a sample of itself toC:\\ProgramData\\Local Settings\\Temp\\mskmde.comand adding a Registry run key to execute every time a user logs on.[12]",
+      "AppleSeedhas the ability to create the Registry key nameEstsoftAutoUpdateatHKCU\\Software\\Microsoft/Windows\\CurrentVersion\\RunOnceto establish persistence.[13]",
+      "APT18establishes persistence via theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runkey.[14][15]",
+      "AnAPT19HTTP malware variant establishes persistence by setting the Registry keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Windows Debug Tools-%LOCALAPPDATA%\\.[16]",
+      "APT28has deployed malware that has copied itself to the startup directory for persistence.[17]",
+      "APT29added Registry Run keys to establish persistence.[18]",
+      "APT3places scripts in the startup folder for persistence.[19]",
+      "APT32established persistence using Registry Run keys, both to execute PowerShell and VBS scripts as well as to execute their backdoor directly.[20][21][22]",
+      "APT33has deployed a tool known asDarkCometto the Startup folder of a victim, and used Registry run keys to gain persistence.[23][24]",
+      "APT37's has added persistence via the Registry keyHKCU\\Software\\Microsoft\\CurrentVersion\\Run\\.[25][26]",
+      "APT39has maintained persistence using the startup folder.[27]",
+      "APT41created and modified startup files for persistence.[28][29]APT41added a registry key inHKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Svchostto establish persistence forCobalt Strike.[30]",
+      "Aria-bodyhas established persistence via the Startup folder or Run Registry key.[31]",
+      "Astarothcreates a startup item for persistence.[32]",
+      "AuTo Stealercan place malicious executables in a victim's AutoRun registry key or StartUp directory, depending on the AV product installed, to maintain persistence.[33]",
+      "Avaddonuses registry run keys for persistence.[34]",
+      "AvosLockerhas been executed via theRunOnceRegistry key to run itself on safe mode.[35]",
+      "BabySharkhas added a Registry key to ensure all future macros are enabled for Microsoft Word and Excel as well as for additional persistence.[36][37]",
+      "Backdoor.Oldreaadds Registry Run keys to achieve persistence.[38][39]",
+      "BACKSPACEachieves persistence by creating a shortcut to itself in the CSIDL_STARTUP directory.[40]",
+      "BADNEWSinstalls a registry Run key to establish persistence.[41]",
+      "BadPatchestablishes a foothold by adding a link to the malware executable in the startup folder.[42]",
+      "Bazarcan create or add files to Registry Run Keys to establish persistence.[43][44]",
+      "BBSRAThas been loaded through DLL side-loading of a legitimate Citrix executable that is set to persist through the Registry Run key locationHKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\ssonsvr.exe.",
+      "Bisonalhas added itself to the Registry keyHKEY_CURRENT_USER\\Software\\Microsoft\\CurrentVersion\\Run\\for persistence.[45][46]",
+      "BitPaymerhas set the run keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[47]",
+      "BlackBytehas used Registry Run keys for persistence.[48]",
+      "TheBlackEnergy3 variant drops its main DLL component and then creates a .lnk shortcut to that file in the startup folder.[49]",
+      "BoomBoxcan establish persistence by writing the Registry valueMicroNativeCacheSvctoHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.[50]",
+      "Bribacreates run key Registry entries pointing to malicious DLLs dropped to disk.[51]",
+      "BRONZE BUTLERhas used a batch script that adds a Registry Run key to establish malware persistence.[52]",
+      "build_downerhas the ability to add itself to the Registry Run key for persistence.[53]",
+      "Carbanakstores a configuration files in the startup directory to automatically execute commands in order to persist across reboots.[54]",
+      "Carberphas maintained persistence by placing itself inside the current user's startup folder.[55]",
+      "Cardinal RATestablishes Persistence by setting theHKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\LoadRegistry key to point to its executable.[56]",
+      "Chaeshas added persistence via the Registry keysoftware\\microsoft\\windows\\currentversion\\run\\microsoft windows html help.[57]",
+      "ChChesestablishes persistence by adding a Registry Run key.[58]",
+      "Chinoxyhas established persistence via theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runregistry key and by loading a dropper to(%COMMON_ STARTUP%\\\\eoffice.exe).[59]",
+      "Clamblingcan establish persistence by adding a Registry run key.[60][61]",
+      "Cobalt Grouphas used Registry Run keys for persistence. The group has also set a Startup path to launch the PowerShell shell command and download Cobalt Strike.[62]",
+      "Cobian RATcreates an autostart Registry key to ensure persistence.[63]",
+      "Comnieachieves persistence by adding a shortcut of itself to the startup path in the Registry.[64]",
+      "Confickeradds Registry Run keys to establish persistence.[65]",
+      "Confuciushas dropped malicious files into the startup folder%AppData%\\Microsoft\\Windows\\Start Menu\\Programs\\Startupon a compromised host in order to maintain persistence.[66]",
+      "CORESHELLhas established persistence by creating autostart extensibility point (ASEP) Registry entries in the Run key and other Registry keys, as well as by creating shortcuts in the Internet Explorer Quick Start folder.[67]",
+      "One persistence mechanism used byCozyCaris to set itself to be executed at system startup by adding a Registry value under one of the following Registry keys:HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\RunHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run[68]",
+      "Crimsoncan add Registry run keys for persistence.[69][70]",
+      "CrossRATuses run keys for persistence on Windows.[71]",
+      "Dark Caracal's version ofBandookadds a registry key toHKEY_USERS\\Software\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[71]",
+      "DarkCometadds several Registry entries to enable automatic execution at every system startup.[72][73]",
+      "DarkGateinstallation includes AutoIt script execution creating a shortcut to itself as an LNK object, such as bill.lnk, in the victim startup folder.[74][75]DarkGateinstallation finishes with the creation of a registry Run key.[74]",
+      "Darkhotelhas been known to establish persistence by adding programs to the Run Registry key.[76]",
+      "DarkTortillahas established persistence via theSoftware\\Microsoft\\Windows NT\\CurrentVersion\\Runregistry key and by creating a .lnk shortcut file in the Windows startup folder.[77]",
+      "DnsSystemcan write itself to the Startup folder to gain persistence.[78]",
+      "DownPaperuses PowerShell to add a Registry Run key in order to establish persistence.[79]",
+      "Dragonflyhas added the registry value ntdll to the Registry Run key to establish persistence.[80]",
+      "DustySkyachieves persistence by creating a Registry entry inHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run.[81]",
+      "If establishing persistence by installation as a new service fails, one variant ofEliseestablishes persistence for the created .exe file by setting the following Registry key:HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\svchost : %APPDATA%\\Microsoft\\Network\\svchost.exe. Other variants have set the following Registry keys for persistence:HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\imejp : [self]andHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\IAStorD.[82][83]",
+      "Variants ofEmissaryhave added Run Registry keys to establish persistence.[84]",
+      "Emotethas been observed adding the downloaded payload to theHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Runkey to maintain persistence.[85][86][87]",
+      "Empirecan modify the registry run keysHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunandHKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[88]",
+      "EvilBunnyhas created Registry keys for persistence in[HKLM|HKCU]\\…\\CurrentVersion\\Run.[89]",
+      "EvilGrabadds a Registry Run key for ctfmon.exe to establish persistence.[58]",
+      "EVILNUMcan achieve persistence through the Registry Run key.[90][91]",
+      "FatDukehas usedHKLM\\SOFTWARE\\Microsoft\\CurrentVersion\\Runto establish persistence.[92]",
+      "FELIXROOTadds a shortcut file to the startup folder for persistence.[93]",
+      "FIN10has established persistence by using the Registry option in PowerShell Empire to add a Run key.[94][88]",
+      "FIN13has used Windows Registry run keys such as,HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\\hoststo maintain persistence.[95]",
+      "FIN6has used Registry Run keys to establish persistence for its downloader tools known as HARDTACK and SHIPBREAD.[96]",
+      "FIN7malware has created Registry Run and RunOnce keys to establish persistence, and has also added items to the Startup folder.[97][98]",
+      "Final1stspycreates a Registry Run key to establish persistence.[99]",
+      "FinFisherestablishes persistence by creating the Registry keyHKCU\\Software\\Microsoft\\Windows\\Run.[100][101]",
+      "Flagprohas dropped an executable file to the startup directory.[102]",
+      "FLASHFLOODachieves persistence by making an entry in the Registry's Run key.[40]",
+      "FlawedAmmyyhas established persistence via theHKCU\\SOFTWARE\\microsoft\\windows\\currentversion\\runregistry key.[10]",
+      "FunnyDreamcan use a Registry Run Key and the Startup folder to establish persistence.[59]",
+      "Gamaredon Grouptools have registered Run keys in the registry to give malicious VBS files persistence.[103][104][105][106]",
+      "Gazercan establish persistence by creating a .lnk file in the Start menu.[107][108]",
+      "Gelsemiumcan set persistence with a Registry run key.[109]",
+      "gh0st RAThas added a Registry Run key to establish persistence.[110][111]",
+      "Gold Dragonestablishes persistence in the Startup folder.[112]",
+      "Gootloadercan create an autorun entry for a PowerShell script to run at reboot.[113]",
+      "Gorgon Groupmalware can create a .lnk file and add a Registry Run key to establish persistence.[114]",
+      "Grandoreirocan use run keys and create link files in the startup folder for persistence.[115][116]",
+      "GRIFFONhas used a persistence module that stores the implant inside the Registry, which executes at logon.[117]",
+      "GrimAgentcan set persistence with a Registry run key.[118]",
+      "GuLoadercan establish persistence via the Registry underHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce.[119]",
+      "Hancitorhas added Registry Run keys to establish persistence.[120]",
+      "Helminthestablishes persistence by creating a shortcut in the Start Menu folder.[121]",
+      "Heyoka Backdoorcan establish persistence with the auto start function including using the valueEverNoteTrayUService.[122]",
+      "Hi-Zorcreates a Registry Run key to establish persistence.[123]",
+      "Higaisaadded a spoofed binary to the start-up folder for persistence.[124][125]",
+      "HTTPBrowserhas established persistence by setting theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runkey value forwdmto the path of the executable. It has also used the Registry entryHKEY_USERS\\Software\\Microsoft\\Windows\\CurrentVersion\\Run vpdn \"%ALLUSERPROFILE%\\%APPDATA%\\vpdn\\VPDN_LU.exe\"to establish persistence.[126][127]",
+      "IcedIDhas established persistence by creating a Registry run key.[128]",
+      "Inceptionhas maintained persistence by modifying Registry run key valueHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\.[129]",
+      "SomeInnaputRATvariants establish persistence by modifying the Registry keyHKU\\\\Software\\Microsoft\\Windows\\CurrentVersion\\Run:%appdata%\\NeutralApp\\NeutralApp.exe.[130]",
+      "InvisiMolecan place a lnk file in the Startup Folder to achieve persistence.[131]",
+      "Ixeshecan achieve persistence by adding itself to theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunRegistry key.[132]",
+      "JCryhas created payloads in the Startup directory to maintain persistence.[133]",
+      "JHUHUGIThas used a Registry Run key to establish persistence by executing JavaScript code within the rundll32.exe process.[134]",
+      "Kasidetcreates a Registry Run key to establish persistence.[135][136]",
+      "Kazuaradds a sub-key under several Registry run keys.[137]",
+      "SeveralKe3changbackdoors achieved persistence by adding a Run key.[138]",
+      "Kimsukyhas placed scripts in the startup folder for persistence and modified theHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnceRegistry key.[139][37][140][141][142]",
+      "Koadichas added persistence to theHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunRegistry key.[143]",
+      "KOCTOPUScan set the AutoRun Registry key with a PowerShell command.[143]",
+      "A version ofKONNIhas dropped a Windows shortcut into the Startup folder to establish persistence.[144]",
+      "Latrodectuscan set an AutoRun key to establish persistence.[145]",
+      "Lazarus Grouphas maintained persistence by loading malicious code into a startup folder or by adding a Registry Run key.[146][147][148][149]",
+      "LazyScripterhas achieved persistence via writing a PowerShell script to the autorun registry key.[143]",
+      "Leviathanhas used JavaScript to create a shortcut file in the Startup folder that points to its main backdoor.[150][151]",
+      "LiteDukecan create persistence by adding a shortcut in theCurrentVersion\\RunRegistry key.[92]",
+      "LockBit 2.0can use a Registry Run key to establish persistence at startup.[152]",
+      "LoJaxhas modified the Registry key‘HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\BootExecute’from‘autocheck autochk’to‘autocheck autoche’in order to execute its payload during Windows startup.[153]",
+      "LookBacksets up a Registry Run key to establish a persistence mechanism.[154]",
+      "Lucifercan persist by setting Registry key valuesHKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\QQMusicandHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\QQMusic.[155]",
+      "LuminousMothhas used malicious DLLs that setup persistence in the Registry KeyHKCU\\Software\\Microsoft\\Windows\\Current Version\\Run.[156][157]",
+      "Lumma Stealerhas created registry keys to maintain persistence usingHKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run.[158][159]",
+      "Macheteused the startup folder for persistence.[160][161]",
+      "Magic Houndmalware has used Registry Run keys to establish persistence.[162][163][164]",
+      "MagicRATcan persist using malicious LNK objects in the victim machine Startup folder.[165]",
+      "MarkiRATcan drop its payload into the Startup directory to ensure it automatically runs when the compromised system is started.[166]",
+      "Matryoshkacan establish persistence by adding Registry Run keys.[167][168]",
+      "Mazehas created a file named \"startup_vrun.bat\" in the Startup folder of a virtual machine to establish persistence.[169]",
+      "MCMDcan use Registry Run Keys for persistence.[170]",
+      "Metamorfohas configured persistence to the Registry keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run, Spotify =% APPDATA%\\Spotify\\Spotify.exeand used .LNK files in the startup folder to achieve persistence.[171][172][173][174]",
+      "Mispaducreates a link in the startup folder for persistence.[175]Mispaduadds persistence via the registry keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.[176]",
+      "Mivastcreates the following Registry entry:HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Micromedia.[177]",
+      "MoleNetcan achieve persitence on the infected machine by setting the Registry run key.[178]",
+      "Moleratssaved malicious files within the AppData and Startup folders to maintain persistence.[179]",
+      "Mongallcan establish persistence with the auto start function including using the valueEverNoteTrayUService.[122]",
+      "Moonstone Sleetused registry run keys for process execution during initial victim infection.[180]",
+      "Mosquitoestablishes persistence under the Registry keyHKCU\\Software\\Run auto_update.[181]",
+      "MuddyWaterhas added Registry Run keyKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\SystemTextEncodingto establish persistence.[182][183][184][185][186][187]",
+      "Mustang Pandahas created the registry keyHKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\\AdobelmdyUto maintain persistence.[188]",
+      "Naikonhas modified a victim's Windows Run registry to establish persistence.[189]",
+      "NanHaiShumodifies the %regrun% Registry to point itself to an autostart mechanism.[190]",
+      "NanoCorecreates a RunOnce key in the Registry to execute its VBS scripts each time the user logs on to the machine.[191]",
+      "NavRATcreates a Registry key to ensure a file gets executed upon reboot in order to establish persistence.[192]",
+      "Nebulaecan achieve persistence through a Registry Run key.[189]",
+      "The \"SCOUT\" variant ofNETEAGLEachieves persistence by adding itself to theHKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunRegistry key.[40]",
+      "NETWIREcreates a Registry start-up entry to establish persistence.[193][194][119][195]",
+      "njRAThas added persistence via the Registry keyHKCU\\Software\\Microsoft\\CurrentVersion\\Run\\and dropped a shortcut in%STARTUP%.[196][197]",
+      "NOKKIhas established persistence by writing the payload to the Registry keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.[198]",
+      "ObliqueRATcan gain persistence by a creating a shortcut in the infected user's Startup directory.[199]",
+      "Octopusachieved persistence by placing a malicious executable in the startup directory and has added theHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Runkey to the Registry.[200]",
+      "Okrumestablishes persistence by creating a .lnk shortcut to itself in the Startup folder.[201]",
+      "DuringOperation Dream Job,Lazarus Groupplaced LNK files into the victims' startup folder for persistence.[202]",
+      "DuringOperation Sharpshooter, a first-stage downloader installedRising Sunto%Startup%\\mssync.exeon a compromised host.[203]",
+      "Patchworkhas added the path of its second-stage malware to the startup folder to achieve persistence. One of its file stealers has also persisted by adding a Registry Run key.[204][205]",
+      "Pikabotmaintains persistence following system checks through the Run key in the registry.[206]",
+      "Pisloaderestablishes persistence via a Registry Run key.[207]",
+      "PLAINTEEgains persistence by adding the Registry keyHKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce.[208]",
+      "PlugXadds Run key entries in the Registry to establish persistence.[209][58][210]",
+      "PoetRAThas added a registry key in thehive for persistence.[211]",
+      "PoisonIvycreates run key Registry entries pointing to a malicious executable dropped to disk.[212]",
+      "PowerDukeachieves persistence by using various Registry Run keys.[213]",
+      "PowerShowersets up persistence with a Registry run key.[214]",
+      "POWERSOURCEachieves persistence by setting a Registry Run key, with the path depending on whether the victim account has user or administrator access.[215]",
+      "PowerSploit'sNew-UserPersistenceOptionPersistence argument can be used to establish via theHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunRegistry key.[216][217]",
+      "POWERTONcan install a Registry Run key for persistence.[218]",
+      "Prikormkaadds itself to a Registry Run key with the name guidVGA or guidVSA.[219]",
+      "PROMETHIUMhas used Registry run keys to establish persistence.[220]",
+      "Pteranodoncopies itself to the Startup folder to establish persistence.[221]",
+      "PUNCHBUGGYhas been observed using a Registry Run key.[222][223]",
+      "Pupyadds itself to the startup folder or adds itself to the Registry keySOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[224]",
+      "A dropper used byPutter Pandainstalls itself into the ASEP Registry keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runwith a value named McUpdate.[225]",
+      "QakBotcan maintain persistence by creating an auto-run Registry key.[226][227][228][229]",
+      "If theQuasarRATclient process does not have administrator privileges it will add a registry key toHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[230][231]",
+      "Ramsayhas created Registry Run keys to establish persistence.[232]",
+      "RansomHubhas created an autorun Registry key through the-safeboot-instance -passcommand line argument.[233]",
+      "Raspberry Robinwill use a Registry key to achieve persistence through reboot, setting a RunOnce key such as:HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce{random value name} = \"rundll32 shell32 ShellExec_RunDLLA REGSVR /u /s \"{dropped copy path and file name}\"\".[234]",
+      "RCSessionhas the ability to modify a Registry Run key to establish persistence.[60][235]",
+      "Reavercreates a shortcut file and saves it in a Startup folder to establish persistence.[236]",
+      "RedCurlhas established persistence by creating entries inHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run.[237][238]",
+      "Mustang Pandaused Run registry keys with names such asOneNote Updateto execute legitimate executables that would load through search-order hijacking malicious DLLS to ensure persistence duringRedDelta Modified PlugX Infection Chain Operations.[239]",
+      "RedLeavesattempts to add a shortcut file in the Startup folder to achieve persistence. If this fails, it attempts to add Registry Run keys.[58][240]",
+      "Remcoscan add itself to the Registry keyHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[241]",
+      "Remexiutilizes Run Registry keys in the HKLM hive as a persistence mechanism.[242]",
+      "Rifdoorhas created a new registry entry atHKEY_CURRENT_USERS\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Graphicswith a value ofC:\\ProgramData\\Initech\\Initech.exe /run.[243]",
+      "ROADSWEEPhas been placed in the start up folder to trigger execution upon user login.[244]",
+      "Rocke's miner has created UPX-packed files in the Windows Start Menu Folder.[245]",
+      "RogueRobincreated a shortcut in the Windows startup folder to launch a PowerShell script each time the user logs in to establish persistence.[246]",
+      "Roverpersists by creating a Registry entry inHKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\.[247]",
+      "RTMtries to add a Registry Run key under the name \"Windows Update\" to establish persistence.[248]",
+      "RTMhas used Registry run keys to establish persistence for theRTMTrojan and other tools, such as a modified version of TeamViewer remote desktop software.[248][249]",
+      "RunningRATadds itself to the Registry keySoftware\\Microsoft\\Windows\\CurrentVersion\\Runto establish persistence upon reboot.[112]",
+      "Ryukhas used the Windows command line to create a Registry entry underHKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Runto establish persistence.[250]",
+      "S-Typemay create a .lnk file to itself that is saved in the Start menu folder. It may also create the Registry keyHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\ IMJPMIJ8.1{3 characters of Unique Identifier}.[251]",
+      "Saint Bothas established persistence by being copied to the Startup directory or through the\\Software\\Microsoft\\Windows\\CurrentVersion\\Runregistry key.[252][253]",
+      "MostSakulasamples maintain persistence by setting the Registry Run keySOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\in the HKLM or HKCU hive, with the Registry value and file name varying by sample.[254]",
+      "SDBbothas the ability to add a value to the Registry Run key to establish persistence if it detects it is running with regular user privilege.[255][256]",
+      "SeaDukeis capable of persisting via the Registry Run key or a .lnk file stored in the Startup directory.[257]",
+      "Seasaltcreates a Registry entry to ensure infection after reboot underHKLM\\Software\\Microsoft\\Windows\\currentVersion\\Run.[258]",
+      "ServHelpermay attempt to establish persistence via theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\run key.[259]",
+      "SharpStagehas the ability to create persistence for the malware using the Registry autorun key and startup folder.[178]",
+      "ShimRathas installed a registry based start-up keyHKCU\\Software\\microsoft\\windows\\CurrentVersion\\Runto maintain persistence should other methods fail.[260]",
+      "SHIPSHAPEachieves persistence by creating a shortcut in the Startup folder.[40]",
+      "Sidewinderhas added paths to executables in the Registry to establish persistence.[261][262][263]",
+      "Silencehas usedHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run,HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run, and the Startup folder to establish persistence.[264]",
+      "SILENTTRINITYcan establish a LNK file in the startup folder for persistence.[265]",
+      "Small Sievehas the ability to add itself toHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\OutlookMicrosiftfor persistence.[266]",
+      "Smoke Loaderadds a Registry Run key for persistence and adds a script in the Startup folder to deploy the payload.[267]",
+      "SMOKEDHAMhas usedreg.exeto create a Registry Run key.[268]",
+      "Snip3can create a VBS file in startup to persist after system restarts.[269]",
+      "SNUGRIDEestablishes persistence through a Registry Run key.[270]",
+      "SPACESHIPachieves persistence by creating a shortcut in the current user's Startup folder.[40]",
+      "To establish persistence,SslMMidentifies the Start Menu Startup directory and drops a link to its own executable disguised as an \"Office Start,\" \"Yahoo Talk,\" \"MSN Gaming Z0ne,\" or \"MSN Talk\" shortcut.[271]",
+      "STARWHALEcan establish persistence by installing itself in the startup folder, whereas the GO variant has created aHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\OutlookMregistry key.[272][273]",
+      "Storm-1811has created Windows Registry Run keys that execute various batch scripts to establish persistence on victim devices.[274]",
+      "StrongPitycan use theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunRegistry key for persistence.[220]",
+      "Sykipothas been known to establish persistence by adding programs to the Run Registry key.[275]",
+      "SysUpdatecan use a Registry Run key to establish persistence.[276]",
+      "TA2541has placed VBS files in the Startup folder and used Registry run keys to establish persistence for malicious payloads.[277]",
+      "Taidoorhas modified theHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Runkey for persistence.[278]",
+      "TAINTEDSCRIBEcan copy itself into the current user’s Startup folder as \"Narrator.exe\" for persistence.[279]",
+      "TeamTNThas added batch scripts to the startup folder.[280]",
+      "Threat Group-3390's malware can add a Registry key toSoftware\\Microsoft\\Windows\\CurrentVersion\\Runfor persistence.[281][282]",
+      "ThreatNeedlecan be loaded into the Startup folder (%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\OneDrives.lnk) as a Shortcut file for persistence.[283]",
+      "TINYTYPHONinstalls itself under Registry Run key to establish persistence.[41]",
+      "TinyZBotcan create a shortcut in the Windows startup folder for persistence.[284]",
+      "TrickBotestablishes persistence in the Startup folder.[285]",
+      "Trojan.Karaganycan create a link to itself in the Startup folder to automatically start itself upon system restart.[38][286]",
+      "Tropic Trooperhas created shortcuts in the Startup folder to establish persistence.[287][288]",
+      "Truvasysadds a Registry Run key to establish persistence.[289]",
+      "Turiancan establish persistence by adding Registry Run keys.[290]",
+      "ATurlaJavascript backdoor added a local_update_check value under the Registry keyHKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Runto establish persistence. Additionally, aTurlacustom executable containing Metasploit shellcode is saved to the Startup folder to gain persistence.[181][291][292]",
+      "TURNEDUPis capable of writing to a Registry Run key to establish.[293]",
+      "Ursnifhas used Registry Run keys to establish automatic execution at system startup.[294][295]",
+      "USBStealerregisters itself under a Registry Run key with the name \"USB Disk Security.\"[296]",
+      "Vasportcopies itself to disk and creates an associated run key Registry entry to establish.[297]",
+      "VBShowerusedHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\[a-f0-9A-F]{8}to maintain persistence.[298]",
+      "WarzoneRATcan add itself to theHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunandHKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UIF2IS20VKRegistry keys.[299]",
+      "Windshifthas created LNK files in the Startup folder to establish persistence.[300]",
+      "Winnti for Windowscan add a service namedwind0wsto the Registry to achieve persistence after reboot.[301]",
+      "Wizard Spiderhas established persistence via the Registry keyHKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Runand a shortcut within the startup folder.[302][303]",
+      "Xbashcan create a Startup item for persistence if it determines it is on a Windows system.[304]",
+      "XLoaderestablishes persistence by copying its executable in a subdirectory of%APPDATA%or%PROGRAMFILES%, and then modifies Windows Registry Run keys or policies keys to execute the executable on system start.[305][306]",
+      "Zebrocycreates an entry in a Registry Run key for the malware to execute on startup.[307][308][309]",
+      "Zeus Pandaadds persistence by creating Registry Run keys.[310][311]",
+      "ZIRCONIUMhas created a Registry Run key namedDropbox Update Setupto establish persistence for a malicious Python binary.[312]"
+ 
+Please identify the behavioral patterns from these examples and relate them to the technique described above.
+
+---------------------------------------------------------------------------
+
+Likely attack patterns for T1547.001 (Malicious File Execution) may include:
+
+1. Registry-Based Persistence
+✅ Common Registry Key Paths Used:
+HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+
+HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+
+HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce
+
+HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce
+
+HKCU\Software\Microsoft\Windows NT\CurrentVersion\Windows
+
+HKLM\System\CurrentControlSet\Control\Session Manager
+
+HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders
+
+HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\Run
+
+🔍 Detection Indicators:
+Write/Set operations to the keys above
+
+Value names mimicking legitimate software: QQMusic, svchost, AdobeUpdate, Windows Debug Tools, etc.
+
+Binary path in value often points to:
+
+Non-system locations (e.g., %APPDATA%, %TEMP%, C:\Users\, C:\ProgramData\)
+
+Suspicious or rare file extensions (.exe, .dll, .com, .bat, .vbs)
+
+Value content includes rundll32, powershell, or indirect loaders
+
+2. File-Based Persistence via Startup Folder
+✅ Common Paths:
+%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\
+
+C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\
+
+🔍 Detection Indicators:
+File creation in startup folders (CreateFile, WriteFile events)
+
+File extensions include .lnk, .exe, .vbs, .js, .bat
+
+Use of shortcut (.lnk) pointing to:
+
+Suspicious binaries
+
+Scripts or LOLBins (e.g., wscript, cmd, powershell)
+
+Often combined with masquerading (e.g., names like OneDrive.lnk, OfficeStart.lnk, AdobeUpdater.exe)
+
+3. Access Patterns / Tools Used
+Registry modifications made via:
+
+reg.exe
+
+powershell.exe
+
+cmd.exe /c reg add
+
+Direct registry APIs by malware (if logging supports tracing registry writes via process context)
+
+File drops into startup folders done by:
+
+powershell.exe, cmd.exe, explorer.exe
+
+Malware binaries or scripts directly writing to path
+
+4. Anomalous Execution Paths
+Values or files pointing to:
+
+Suspicious directories like %TEMP%, %APPDATA%, %LOCALAPPDATA%, or obfuscated paths (e.g., C:\ProgramData\Local Settings\Temp)
+
+File names resembling Windows components but executing from user space (e.g., svchost.exe in %APPDATA%)
+
+5. Double-Persistence Patterns
+Both registry key creation and file drop in startup folder by same process or campaign
+
+Often seen in RATs or ransomware with failover persistence mechanisms
+
+
+---------------------------------------------------------------------------
+
+The following detection techniques are commonly used to identify this TTP:
+
+      "Monitor executed commands and arguments that may achieve persistence by adding a program to a startup folder or referencing it with a Registry run key.",
+      "Monitor the start folder for additions or changes. Tools such as Sysinternals Autoruns may also be used to detect system changes that could be attempts at persistence, including the startup folders.[313]",
+      "Monitor for newly executed processes executed from the Run/RunOnce registry keys through Windows EID 9707 or \"Software\\Microsoft\\Windows\\CurrentVersion\\Run\" and \"Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\" registry keys with the full command line.Registry modifications are often essential in establishing persistence via known Windows mechanisms. Many legitimate modifications are done graphically via regedit.exe or by using the corresponding channels, or even calling the Registry APIs directly. The built-in utility reg.exe provides a command-line interface to the registry, so that queries and modifications can be performed from a shell, such as cmd.exe. When a user is responsible for these actions, the parent of cmd.exe will likely be explorer.exe. Occasionally, power users and administrators write scripts that do this behavior as well, but likely from a different process tree. These background scripts must be learned so they can be tuned out accordingly.Output DescriptionThe sequence of processes that resulted in reg.exe being started from a shell. That is, a hierarchy that looks like• great-grand_parent.exe• grand_parent.exe• parent.exe• reg.exeAnalytic 1 - Reg.exe called from Command Shell(source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=\"1\") OR (source=\"WinEventLog:Security\" EventCode=\"4688\") Image=\"reg.exe\" AND ParentImage=\"cmd.exe\"| join left=L right=R where L.ParentProcessGuid = R.ProcessGuid     [search EventCode IN (1, 4688) Image=\"cmd.exe\" ParentImage!=\"explorer.exe\"]",
+      "Monitor for newly created windows registry keys that may achieve persistence by adding a program to a startup folder or referencing it with a Registry run key.",
+      "Monitor Registry for changes to run keys that do not correlate with known software, patch cycles, etc. Tools such as Sysinternals Autoruns may also be used to detect system changes that could be attempts at persistence, including listing the run keys' Registry locations.[313]Detection of the modification of the registry keyCommon Startuplocated in HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders\\ and HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders. When a user logs on, any files located in the Startup Folder are launched. Attackers may modify these folders with other files in order to evade detection set on these default folders. This detection focuses on EventIDs 4688 and 1 for process creation and EventID 4657 for the modification of the Registry Keys.Analytic 1 - Modification of Default Startup Folder in the Registry Key ‘Common Startup’(source=\"WinEventLog:Security\" EventCode=\"4657\" ObjectValueName=\"Common Startup\") OR (source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=\"13\" TargetObject=\"*Common Startup\")"
+
+Please analyze how these detection methods map to the suspicious behaviors described above.
+
+---------------------------------------------------------------------------
+
+Our detection events follow this schema:
+
+Each event contains:
+- srcNode: The source entity (usually a process)
+  - Fields: UUID, Name, Image, Cmdline, Type, Pid
+- dstNode: The destination entity (may be null or Process, File, Registry, or Network)
+  - Fields: UUID, Name or Path or Key, Image, Cmdline, Dstaddress, Port, Type
+- relation: Describes the action from source to destination
+  - Possible values:
+    - File: CreateFile, WriteFile, ReadFile, CloseFile, etc.
+    - Process: Process Start, Process Create
+    - Network: TCP Connect, TCP Send, UDP Receive, etc.
+    - Registry: RegOpenKey, RegSetValue, RegQueryValue, etc.
+- timestamp: UNIX timestamp
+- label: Ground-truth label (e.g., benign or TTP ID)
+
+Example event:
+{
+  "srcNode": {
+    "Image": "C:\\Windows\\explorer.exe",
+    "Cmdline": "C:\\Windows\\explorer.exe",
+    "Type": "Process"
+  },
+  "dstNode": {
+    "Image": "C:\\Users\\user\\Downloads\\malware.scr",
+    "Cmdline": "C:\\Users\\user\\Downloads\\malware.scr",
+    "Type": "Process"
+  },
+  "relation": "Process Create"
+}
+
+---------------------------------------------------------------------------
+
+Now, based on the above information, please generate a complete Sigma rule in valid YAML format.
+
+Special instructions (additions):
+- Include separate detection blocks for:
+  1) Process Create|Start of risky extensions
+  2) Office/Browser CreateFile|WriteFile of risky extensions
+  3) Two-stage chain: Office -> cmd|powershell -> wscript|cscript|rundll32
+- When dstNode.Image is null, fall back to dstNode.Name
+- Directory check: raise if path NOT under \Windows\system32 OR \Program Files, or simply omit directory filter
+- Detect double-extension camouflage (regex: \.(doc|pdf|xls)\s*\.(exe|scr|vbs)$)
+- Support both Process Create and Process Start
+
+---------------------------------------------------------------------------
+
+Your output must include the following fields:
+
+- title or name
+- id: A randomly generated UUID
+- description
+- status: production
+- author: auto-generated
+- date: Use today’s date in YYYY-MM-DD format
+- logsource:
+  - category: custom
+  - product: windows
+- detection: with at least 2–3 detection branches for different execution patterns
+- condition: combine relevant detections using or
+- tags: Include ATT&CK ID (e.g., attack.T1204.002) and tactic (e.g., execution)
+- references: Optional
+- level: high / medium / low
+
+Output only the YAML rule inside a Markdown code block using triple backticks and yaml.  
+Do not include explanations, JSON examples, or extra commentary.

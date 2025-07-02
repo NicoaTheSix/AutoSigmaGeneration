@@ -1,0 +1,77 @@
+title: Suspicious File Execution from Spearphishing Attachment
+id: c123e9e8-276d-4aaf-9cd7-8138fdc73297
+description: Detects potential spearphishing attachment execution where risky files delivered by email or browser are opened by office or document viewer applications, a common initial access technique (T1566.001).
+status: production
+author: auto-generated
+date: 2025-07-02
+logsource:
+  category: custom
+  product: windows
+detection:
+  file_written:
+    relation: WriteFile
+    srcNode.Image|endswith:
+      - chrome.exe
+      - msedge.exe
+      - firefox.exe
+      - outlook.exe
+    dstNode.Name|contains:
+      - Downloads
+      - AppData
+      - Temp
+    dstNode.Name|endswith:
+      - .doc
+      - .docx
+      - .xls
+      - .xlsx
+      - .ppt
+      - .pdf
+      - .exe
+      - .zip
+      - .rar
+      - .js
+      - .vbs
+      - .lnk
+  proc_executes_file:
+    relation: Process Create
+    srcNode.Image|endswith:
+      - winword.exe
+      - excel.exe
+      - acrord32.exe
+      - powerpnt.exe
+    srcNode.Cmdline|contains:
+      - Downloads
+      - AppData
+      - Temp
+    srcNode.Cmdline|endswith:
+      - .doc
+      - .docx
+      - .xls
+      - .xlsx
+      - .ppt
+      - .pdf
+      - .exe
+      - .zip
+      - .rar
+      - .js
+      - .vbs
+      - .lnk
+  office_spawns_script:
+    relation: Process Create
+    srcNode.Image|endswith:
+      - winword.exe
+      - excel.exe
+      - acrord32.exe
+    dstNode.Image|endswith:
+      - powershell.exe
+      - cmd.exe
+      - wscript.exe
+      - cscript.exe
+      - mshta.exe
+condition: file_written or proc_executes_file or office_spawns_script
+tags:
+  - attack.t1566.001
+  - attack.initial_access
+  - execution
+references: []
+level: high
