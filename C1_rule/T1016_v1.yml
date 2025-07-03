@@ -1,9 +1,4 @@
-title: Execution of Network Discovery Utilities (T1016)
-id: 76de4428-c776-4e5a-b5fe-249ed58a423b
-description: Detects execution of built-in Windows network discovery tools, including direct process launches and script/LOLBins spawning, which may indicate adversary reconnaissance or network configuration discovery activity.
-status: production
-author: auto-generated
-date: 2025-07-02
+
 logsource:
   category: custom
   product: windows
@@ -93,10 +88,3 @@ detection:
           - \ping.exe
           - \wmic.exe
 
-condition: direct_exec_image or direct_exec_name_or_path or lolbin_spawn_discovery
-tags:
-  - attack.t1016
-  - attack.discovery
-level: medium
-references:
-  - https://attack.mitre.org/techniques/T1016/

@@ -1,9 +1,3 @@
-title: Spearphishing Attachment Delivery and Execution Detection
-id: 6e99d8b0-1f45-4d51-b0cb-25dc8ef97c91
-description: Detects multiple phases of spearphishing attachment attacks, including suspicious browser connections, risky file downloads, and malicious process chains such as Office applications spawning script engines.
-status: production
-author: auto-generated
-date: 2025-07-02
 logsource:
   category: custom
   product: windows

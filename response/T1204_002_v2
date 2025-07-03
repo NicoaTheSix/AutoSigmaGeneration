@@ -1,3 +1,0 @@
-<output>
-(risky_extension_execution OR office_browser_file_write OR double_extension_masquerade OR (office_browser_to_script_chain AND script_to_lolbin_chain))
-</output>

@@ -1,0 +1,6 @@
+<output>
+((dstNode.Image: *.vbs OR dstNode.Image: *.vbe OR dstNode.Image: *.bat OR dstNode.Image: *.ps1 OR dstNode.Image: *.js OR dstNode.Image: *.jse OR dstNode.Image: *.scr OR dstNode.Image: *.exe OR dstNode.Image: *.dll) AND (relation: "Process Create" OR relation: "Process Start")) OR 
+((srcNode.Image: "winword.exe" OR srcNode.Image: "excel.exe" OR srcNode.Image: "powerpnt.exe" OR srcNode.Image: "outlook.exe" OR srcNode.Image: "iexplore.exe" OR srcNode.Image: "chrome.exe" OR srcNode.Image: "firefox.exe" OR srcNode.Image: "edge.exe") AND (dstNode.Path: *.vbs OR dstNode.Path: *.vbe OR dstNode.Path: *.bat OR dstNode.Path: *.ps1 OR dstNode.Path: *.js OR dstNode.Path: *.jse OR dstNode.Path: *.scr OR dstNode.Path: *.exe OR dstNode.Path: *.dll) AND (relation: "CreateFile" OR relation: "WriteFile")) OR 
+((dstNode.Image: *.*(doc|pdf|xls)*.*(exe|scr|vbs) AND (relation: "Process Create" OR relation: "Process Start"))) OR 
+(((srcNode.Image: "winword.exe" OR srcNode.Image: "excel.exe" OR srcNode.Image: "powerpnt.exe" OR srcNode.Image: "outlook.exe") AND (dstNode.Image: "cmd.exe" OR dstNode.Image: "powershell.exe")) AND ((srcNode.Image: "cmd.exe" OR srcNode.Image: "powershell.exe") AND (dstNode.Image: "wscript.exe" OR dstNode.Image: "cscript.exe" OR dstNode.Image: "rundll32.exe")))
+</output>

@@ -1,0 +1,3 @@
+<output>
+(browser_tcp or delivery_write or office_spawn) AND (srcNode.Image: *chrome.exe OR srcNode.Image: *msedge.exe OR srcNode.Image: *firefox.exe OR srcNode.Image: *brave.exe OR srcNode.Image: *opera.exe OR srcNode.Image: *outlook.exe OR srcNode.Image: *thunderbird.exe OR srcNode.Image: *winword.exe OR srcNode.Image: *excel.exe OR srcNode.Image: *powerpnt.exe OR srcNode.Image: *acrord32.exe) AND (dstNode.Name: *.exe OR dstNode.Name: *.js OR dstNode.Name: *.docm OR dstNode.Name: *.xlsm OR dstNode.Name: *.pptm OR dstNode.Name: *.zip OR dstNode.Name: *.rar OR dstNode.Name: *.scr OR dstNode.Name: *.lnk OR dstNode.Name: *.bat OR dstNode.Name: *.vbs)
+</output>

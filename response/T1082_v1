@@ -1,3 +1,0 @@
-<output>
-(relation: ("Process Create" OR "Process Start") AND (dstNode.Image: ("systeminfo.exe" OR "hostname.exe" OR "whoami.exe" OR "wmic.exe" OR "reg.exe" OR "ver.exe") AND srcNode.Image: ("cmd.exe" OR "powershell.exe" OR "cscript.exe"))) OR (relation: ("Process Create" OR "Process Start") AND (dstNode.Name: ("systeminfo.exe" OR "hostname.exe" OR "whoami.exe" OR "wmic.exe" OR "reg.exe" OR "ver.exe") AND srcNode.Image: ("cmd.exe" OR "powershell.exe" OR "cscript.exe"))) OR (relation: ("Process Create" OR "Process Start") AND (dstNode.Image: ("powershell.exe" OR "pwsh.exe") AND dstNode.Cmdline: /(?i)(Get-(WmiObject|CimInstance)|Win32_(OperatingSystem|ComputerSystem|BIOS)|PSVersionTable)/))
-</output>

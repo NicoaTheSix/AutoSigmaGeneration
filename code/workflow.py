@@ -244,13 +244,14 @@ def workflow5():
     # TODO: Add your workflow5 logic here
 
     for i in os.listdir(os.path.join(os.getcwd(),"C1_rule")):
+        print(i)
         with open(os.path.join(os.getcwd(),"C1_rule",i),"r",encoding='utf-8')as f:
             Content=f.read()
         query_KQL=KQLGeneration(Content)
         print(query_KQL)
-        with open(os.path.join(os.getcwd(),"response",i.split(".")[0]),"w",encoding='utf-8')as f:
+        with open(os.path.join(os.getcwd(),"response",i.split(".")[0]+"_KQLquery.txt"),"w",encoding='utf-8')as f:
             f.write(query_KQL)
-        print(KQLGeneration(Content))
+        #print(KQLGeneration(Content))
     
 
 def workflow6():

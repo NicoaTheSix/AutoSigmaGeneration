@@ -1,9 +1,3 @@
-title: Suspicious Scheduled Task Execution via Malicious Files and Staged Execution
-id: 27e599de-f5d3-4d3a-a5fd-9be3a99c6b0d
-description: Detects suspicious scheduled task behavior involving schtasks abuse, Office/Browser-initiated writes of malicious scripts, and multi-stage execution chains.
-status: production
-author: auto-generated
-date: 2025-07-02
 logsource:
   category: custom
   product: windows
