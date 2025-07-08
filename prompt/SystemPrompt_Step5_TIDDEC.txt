@@ -1,0 +1,41 @@
+<task>Generate Sigma rules from provided log entries, one rule per attack method.</task>
+<instruction>Given a set of log entries and their associated attack methods, produce a Sigma rule for each method that focuses on a single, specific detection clue.</instruction>
+<dos>– Follow Sigma YAML schema: include title, id, description, logsource, detection (selection), and condition.
+– Name each rule with the TTP ID and a short method descriptor.
+– Use exact field names and values from the log entries in the detection selection.</dos>
+<donts>– Do not combine multiple attack methods in one rule.
+– Do not include execution instructions or remediation advice.
+– Avoid extraneous commentary outside the YAML block.</donts>
+<example>
+Given log entry:
+
+json
+Copy
+Edit
+{
+  "event_id": "4688",
+  "process": "powershell.exe",
+  "cmdline": "powershell -enc JABX...",
+  "user": "CORP\\Alice"
+}
+Output:
+
+yaml
+Copy
+Edit
+title: "T1059.001 Obfuscated PowerShell Execution"
+id: "T1059.001"
+description: "Detects Base64-encoded PowerShell commands executed in memory."
+logsource:
+  product: windows
+  service: security
+detection:
+  selection:
+    EventID: 4688
+    Image|endswith: '\powershell.exe'
+    CommandLine|contains: '-enc'
+  condition: selection
+</example> 
+<content>
+{content}
+</content>

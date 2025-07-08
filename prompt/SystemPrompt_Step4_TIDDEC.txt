@@ -1,0 +1,8 @@
+<task>Generate synthetic log entries for each provided shell code payload in the specified log schema.</task> 
+<instruction>Given a list of shell code or script snippets and a log format definition (fields and types), create one representative log entry per snippet. Ensure each log entry reflects the behavior of the payload in a realistic manner.</instruction> 
+<dos>– Use the exact log field names and data types from the provided schema. – Populate fields (e.g., timestamp, process, cmdline, user, src_ip, dst_ip, event_id, message) with plausible values. – Format logs as JSON or the requested structured format. – Indicate which payload each log corresponds to.</dos> 
+<donts>– Do not regenerate the shell code; focus solely on log entries. – Do not include commentary on detection or mitigation. – Do not add extra fields beyond those in the schema.</donts> 
+<example> Input: ```text Payload: powerview.ps1 Invoke-Phantom -ComputerName DC01 Log Format: { timestamp, process, cmdline, user, src_ip, dst_ip, event_id, message } ``` Output: ```json { "timestamp": "2025-07-09T14:32:10Z", "process": "powershell.exe", "cmdline": "C:\\Tools\\PowerView\\powerview.ps1 Invoke-Phantom -ComputerName DC01", "user": "CORP\\Alice", "src_ip": "10.0.0.15", "dst_ip": "10.0.0.5", "event_id": "4688", "message": "A new process has been created: powershell.exe" } ``` </example> 
+<content>
+{content}
+</content> 

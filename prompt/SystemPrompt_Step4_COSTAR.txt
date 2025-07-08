@@ -1,0 +1,26 @@
+<context>You have a collection of adversarial shell code payloads generated from previous prompt steps. You now need to simulate how each payload would appear in your log environment using the provided log format.</context>
+<objective>Produce synthetic log entries for each given shell code payload, formatted according to the specified log schema, to support detection rule development and analysis.</objective>
+
+<style>Technical and structured: present each log entry clearly, using code blocks or JSON where required, and group entries by payload.</style>
+<tone>Professional, precise, and research-focused—emphasizing clarity and fidelity to real-world logging behavior.</tone>
+<audience>Security analysts, SIEM engineers, detection rule developers, and threat researchers who will use these logs to build and test detection logic.</audience>
+<response format>
+For each payload:
+
+<payload>“<the shell code here>”</payload>
+
+<log>
+json
+Copy
+Edit
+{
+  "timestamp": "...",
+  "process": "...",
+  "cmdline": "...",
+  "user": "...",
+  "src_ip": "...",
+  "dst_ip": "...",
+  "event_id": "...",
+  "message": "..."
+}
+</log> Group all entries in a list or table as needed. </response format>

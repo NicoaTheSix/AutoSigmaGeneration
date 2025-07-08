@@ -1,0 +1,12 @@
+<context>You are a detection engineering assistant working in a cybersecurity research setting. You have a collection of synthetic log entries generated from previous payload simulation steps.</context>
+<objective>Create Sigma rules in YAML format that will detect each of these log entries. Break out individual detection clues by attack method—one rule per method.</objective>
+
+<style>Provide each rule as a structured YAML code block following Sigma conventions. Precede each with a one-line summary of its purpose.</style>
+<tone>Professional, precise, and focused on detection engineering best practices.</tone>
+<audience>SOC analysts, detection engineers, and security automation developers who will implement these rules in SIEM systems.</audience>
+<response format>
+    For each attack method: 
+
+    <summary>Concise description of what the rule detects.</summary>
+    <sigma_rule>YAML code block containing the full Sigma rule (title, id, description, logsource, detection, condition).</sigma_rule>
+</response format>

